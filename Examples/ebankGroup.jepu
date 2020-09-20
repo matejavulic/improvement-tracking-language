@@ -1,0 +1,52 @@
+izvestaj "Monthly Report - E-bank Group"
+{    
+   
+  # We define metrics sets for all three banks
+  metrike E_banka_1
+    {
+        # Defining metric Zalbe
+	Zalbe = (3,20,5)
+        NoveKredKartice = (218, 100, 400)
+	ProvedenoVreme = (7.4, 1, 15)
+	NovKredit = (305,30,500)
+	VremeOdobrenjaKredita = (4.43,30,15) 
+        }
+ 
+  metrike E_banka_2
+    {
+        Zalbe = (1,20,5)
+        NoveKredKartice = (295, 100, 400)
+	ProvedenoVreme = (4.9, 1, 15)
+	NovKredit = (352,30,500)
+	VremeOdobrenjaKredita = (8.82,30,15)
+        } 
+ 
+  metrike E_banka_3
+    {
+        Zalbe = (4,20,5)
+        NoveKredKartice = (191, 100, 400)
+	ProvedenoVreme = (9.5, 1, 15)
+	NovKredit = (254,30,500)
+	VremeOdobrenjaKredita = (2.52,30,15) 
+        }
+  
+    
+    # Print out overall grade of all three banks
+    oceni zbirno E_banka_1,E_banka_2,E_banka_3;
+    
+    # Assess individually grades of each bank
+    oceni pojedinacno E_banka_1, E_banka_2, E_banka_3;
+    
+    #  Third bank got worst grade. Let’s examine why:
+    oceni E_banka_3;
+
+   # Third bank made worst result for metrics Zalbe and NoveKredKartice. 
+   # Let’s draw them so we can better examine them:
+   nacrtaj metriku Zalbe, NoveKredKartice iz E_banka_3; 
+
+   # At the end, we compare overall successfulness of first and second bank:
+   oceni uporedno E_banka_1, E_banka_2;
+
+  # To print all metrics data (entered raw data) we can use the following instruction:
+  ispisi E_banka_1, E_banka_2, E_banka_3;
+}
