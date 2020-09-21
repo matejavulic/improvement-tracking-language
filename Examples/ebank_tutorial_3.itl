@@ -1,0 +1,60 @@
+report "June Performance Assessment Report - E-bank Group"
+{    
+   
+  # We define metrics sets for all three banks
+  metrics E_bank_1
+    {
+        # Defining metric Complaints
+	Compl = (3,20,5)
+        New_Credit_Cards = (218, 100, 400)
+	Screen_Time = (7.4, 1, 15)
+	New_Loans = (305,30,500)
+	Loan_Lead_Time = (4.43,30,15) 
+        }
+ 
+  metrics E_bank_2
+    {
+        Compl = (1,20,5)
+        New_Credit_Cards = (295, 100, 400)
+	Screen_Time = (4.9, 1, 15)
+	New_Loans = (352,30,500)
+	Loan_Lead_Time = (8.82,30,15)
+        } 
+ 
+  metrics E_bank_3
+    {
+        Compl = (4,20,5)
+        New_Credit_Cards = (191, 100, 400)
+	Screen_Time = (9.5, 1, 15)
+	New_Loans = (254,30,500)
+	Loan_Lead_Time = (2.52,30,15) 
+        }
+  
+    
+    # Print out overall grade of all three banks
+    grade cumulative E_bank_1,E_bank_2,E_bank_3;
+    
+    # Assess individually grades of each bank
+    #grade singular E_bank_1, E_bank_2, E_bank_3;
+    
+    #  Third bank got worst grade. Lets examine why:
+   #grade E_bank_3;
+
+   # Third bank made worst result for metrics Compl and New_Credit_Cards. 
+   # Lets draw them so we can better examine them:
+   #draw metric Compl, New_Credit_Cards from E_bank_3; 
+
+   # At the end, we compare overall successfulness of first and second bank:
+   grade comparative E_bank_1, E_bank_2;
+
+  # To print all metrics data (entered raw data) we can use the following instruction:
+  print E_bank_1, E_bank_2, E_bank_3;
+  make report "E_Bank";
+}
+
+
+
+
+
+
+

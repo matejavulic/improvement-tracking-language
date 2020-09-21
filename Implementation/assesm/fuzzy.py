@@ -2,6 +2,13 @@ import numpy as np
 import skfuzzy as fuzz
 import matplotlib.pyplot as plt
 
+faceColor = 'white' #'012a53'
+spines = '#e5ecf600'
+fill = '#e5ecf6'
+fill2 = '#feb377'
+fontAxesColor = '#555555'#'whitesmoke'
+fontColor = '#555555' #'whitesmoke'
+
 # Funkcija koja racuna brojcani stepen pripadnosti linearnoj opadajucoj Fazi funkciji pripadnosti
 def faziOpadajuci(v1,a1,b1):
     x = np.arange(a1+1)
@@ -21,7 +28,7 @@ def crtajMetrike(nazivSkupaMtrCrtanje,pMetrikeKCrtanje,pFaziSkupMtr,pSkupMtr):
 
     # Inicijalizujemo niz cije cemo clanove koristiti kao parametre za prosledjivanje Fazi fjama crtanja
     niz = [0,0,0]
-    print('Crtanje metrika:',nazivSkupaMtrCrtanje,'\n')
+    print('Drawing metrics:',nazivSkupaMtrCrtanje,'\n')
 
     # Izdvoj iz skupa svih ocenjenih metrika pFaziSkupMtr
     # one izracunate vrednosti metrika prema imenima navedenim u nazivSkupaMtrCrtanje
@@ -59,39 +66,39 @@ def faziRastuciCrtaj(v2,a2,b2,nazivMetrike,nazivSkupaMtrCrtanje):
     f2 = fuzz.piecemf(x,[a2,b2,b2])
     m1f2 = fuzz.interp_membership(x,f2,v2)
 
-    fig = plt.figure(figsize=(7, 6), facecolor='#012a53')
+    fig = plt.figure(figsize=(7, 6), facecolor=faceColor)
     
-    # Podesavanje izgleda grafifa
+    # Podesavanje izgleda grafika
     ax = plt.gca()
-    ax.set_facecolor('#012a53')
-    ax.spines["right"].set_color("#e5ecf600")
-    ax.spines["top"].set_color("#e5ecf600")
-    ax.spines["left"].set_color("white")
-    ax.spines["bottom"].set_color("white")
+    ax.set_facecolor(faceColor) #'#012a53'
+    ax.spines["right"].set_color(spines)
+    ax.spines["top"].set_color(spines)
+    ax.spines["left"].set_color('gray')
+    ax.spines["bottom"].set_color('gray')
 
-    font = {'fontname':'Calibri', 'fontsize':16, 'color':'whitesmoke', 'weight':'bold'}
-    fontAxes = {'fontname':'Calibri', 'fontsize':12, 'color':'whitesmoke'}
+    font = {'fontname':'Calibri', 'fontsize':16, 'color':fontColor, 'weight':'bold'}
+    fontAxes = {'fontname':'Calibri', 'fontsize':12, 'color':fontAxesColor}
     plt.xticks(**fontAxes)
     plt.yticks(**fontAxes)
 
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
+    ax.tick_params(axis='x', colors='grey')
+    ax.tick_params(axis='y', colors='grey')
 
-    ax.yaxis.label.set_color('white')
-    ax.xaxis.label.set_color('white')
+    ax.yaxis.label.set_color('grey')
+    ax.xaxis.label.set_color('grey')
     
-    ax.set_xlabel('Vrednost')
-    ax.set_ylabel('Ocena')
+    ax.set_xlabel('Value')
+    ax.set_ylabel('Grade')
    
-    plt.title('Metrika '+nazivMetrike+' - '+nazivSkupaMtrCrtanje, **font)
-    plt.plot(x,f2, color='white')
+    plt.title('Metric '+nazivMetrike+' - '+nazivSkupaMtrCrtanje, **font)
+    plt.plot(x,f2, color='grey')
 
     # Nacrtaj uspravnu i vodoravnu projekciju vrednosti v2
-    plt.axhline(y=m1f2, xmin=0, xmax=v2/b2, color='orange', alpha=0.8, linewidth=1.2, linestyle='dashed')
-    plt.axvline(x=v2, ymin=0, ymax=m1f2, color='orange', alpha=0.8, linewidth=1.2, linestyle='dashed')
+    plt.axhline(y=m1f2, xmin=0, xmax=v2/b2, color='blue', alpha=0.8, linewidth=1.2, linestyle='dashed')
+    plt.axvline(x=v2, ymin=0, ymax=m1f2, color='blue', alpha=0.8, linewidth=1.2, linestyle='dashed')
 
     plt.axhline(y=1, linewidth=1.2, linestyle='dashed',alpha=0.8, color='green')
-    plt.axhline(y=0.7, linewidth=1.2, linestyle='dashed',alpha=0.5, color='yellow')
+    plt.axhline(y=0.7, linewidth=1.2, linestyle='dashed',alpha=0.5, color='orange')
     plt.axhline(y=0.4, linewidth=1.2, linestyle='dashed',alpha=0.4, color='red')
 
 
@@ -123,36 +130,36 @@ def faziOpadajuciCrtaj(v2,a2,b2,nazivMetrike,nazivSkupaMtrCrtanje):
     f2 = fuzz.trimf(x,[0,0,b2])
     m1f2 = fuzz.interp_membership(x,f2,v2)
 
-    fig = plt.figure(figsize=(7, 6), facecolor='#012a53')
+    fig = plt.figure(figsize=(7, 6), facecolor=faceColor)
     ax = plt.gca()
-    ax.set_facecolor('#012a53')
-    ax.spines["right"].set_color("#e5ecf600")
-    ax.spines["top"].set_color("#e5ecf600")
-    ax.spines["left"].set_color("white")
-    ax.spines["bottom"].set_color("white")
+    ax.set_facecolor(faceColor)
+    ax.spines["right"].set_color("white")
+    ax.spines["top"].set_color("white")
+    ax.spines["left"].set_color(fontColor)
+    ax.spines["bottom"].set_color(fontColor)
 
-    font = {'fontname':'Calibri', 'fontsize':16, 'color':'whitesmoke', 'weight':'bold'}
-    fontAxes = {'fontname':'Calibri', 'fontsize':12, 'color':'whitesmoke'}
+    font = {'fontname':'Calibri', 'fontsize':16, 'color':fontColor, 'weight':'bold'}
+    fontAxes = {'fontname':'Calibri', 'fontsize':12, 'color':"black"}
     plt.xticks(**fontAxes)
     plt.yticks(**fontAxes)
 
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
+    ax.tick_params(axis='x', colors='grey')
+    ax.tick_params(axis='y', colors='grey')
     
-    ax.yaxis.label.set_color('white')
-    ax.xaxis.label.set_color('white')
+    ax.yaxis.label.set_color('grey')
+    ax.xaxis.label.set_color('grey')
     
-    ax.set_xlabel('Vrednost')
-    ax.set_ylabel('Ocena')
+    ax.set_xlabel('Value')
+    ax.set_ylabel('Grade')
    
-    plt.title('Metrika '+nazivMetrike+' - '+nazivSkupaMtrCrtanje, **font)
+    plt.title('Metric '+nazivMetrike+' - '+nazivSkupaMtrCrtanje, **font)
 
-    plt.plot(x,f2, color='white')
-    plt.axhline(y=m1f2, xmin=0, xmax=v2/a2, color='orange', alpha=0.8, linewidth=1.2, linestyle='dashed')
-    plt.axvline(x=v2, ymin=0, ymax=m1f2, color='orange', alpha=0.8, linewidth=1.2, linestyle='dashed')
+    plt.plot(x,f2, color="grey")
+    plt.axhline(y=m1f2, xmin=0, xmax=v2/a2, color='blue', alpha=0.8, linewidth=1.2, linestyle='dashed')
+    plt.axvline(x=v2, ymin=0, ymax=m1f2, color='blue', alpha=0.8, linewidth=1.2, linestyle='dashed')
 
     plt.axhline(y=1, linewidth=1.2, linestyle='dashed',alpha=0.8, color='green')
-    plt.axhline(y=0.7, linewidth=1.2, linestyle='dashed',alpha=0.5, color='yellow')
+    plt.axhline(y=0.7, linewidth=1.2, linestyle='dashed',alpha=0.5, color='orange')
     plt.axhline(y=0.4, linewidth=1.2, linestyle='dashed',alpha=0.4, color='red')
 
     plt.annotate(str(round(m1f2,2))+'; '+str(v2),

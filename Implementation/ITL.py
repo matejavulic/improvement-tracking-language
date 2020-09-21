@@ -3,7 +3,6 @@ import tkinter
 import os
 import sys
 
-from tkinter import *
 from tkinter.messagebox import *
 from tkinter.filedialog import *
 
@@ -19,10 +18,9 @@ class TextRedirector(object):
         self.widget.insert("end", str, (self.tag,))
         self.widget.configure(state="disabled")
   
-class Itl: 
-  
+class Itl:
+    
     __root = Tk() 
-  
     # default window width and height 
     __thisWidth = 300
     __thisHeight = 300
@@ -196,7 +194,7 @@ class Itl:
         self.__thisDebugScrollBar.config(command=self.__thisDebugArea.yview)      
         self.__thisDebugArea.config(yscrollcommand=self.__thisDebugScrollBar.set) 
       
-        self.__thisTextArea.insert(END, "izvestaj \"New report\"\n{\n #Insert your code here\n ")
+        self.__thisTextArea.insert(END, "report \"New report\"\n{\n #Insert your code here\n ")
         self.__thisTextArea.focus_set()
         
     # Funkcija za iskljucenje aplikacije
@@ -210,8 +208,8 @@ class Itl:
   
     # Funkcija za otvaranje novog fajla
     def __openFile(self,event=None):  
-        self.__file = askopenfilename(defaultextension=".jepu", 
-                                      filetypes=[("ITL report","*.jepu"), 
+        self.__file = askopenfilename(defaultextension=".itl", 
+                                      filetypes=[("ITL report","*.itl"), 
                                         ("Text document","*.txt"),
                                         ("All files","*.*")
                                        ]
@@ -238,7 +236,7 @@ class Itl:
         self.__root.title("Untitled - ITL") 
         self.__file = None
         self.__thisTextArea.delete(1.0,END)
-        self.__thisTextArea.insert(END, "izvestaj \"New report\"\n{\n #Insert your code here\n ")
+        self.__thisTextArea.insert(END, "report \"New report\"\n{\n #Insert your code here\n ")
         self.__thisTextArea.focus_set()
   
     # Funkcija za cuvanje trenutnog fajla
@@ -246,9 +244,9 @@ class Itl:
   
         if self.__file == None: 
             # Sacuvaj kao novi fajl
-            self.__file = asksaveasfilename(initialfile='Untitled.jepu', 
-                                            defaultextension=".jepu", 
-                                            filetypes=[("ITL report","*.jepu"), 
+            self.__file = asksaveasfilename(initialfile='Untitled.itl', 
+                                            defaultextension=".itl", 
+                                            filetypes=[("ITL report","*.itl"), 
                                                 ("Text document","*.txt"),
                                                 ("All files","*.*")
                                              ]
@@ -273,9 +271,9 @@ class Itl:
     def __saveFileAs(self,event=None): 
   
         # Otovri dijalog za cuvanje fajla
-        self.__file = asksaveasfilename(initialfile='Untitled.jepu', 
-                                            defaultextension=".jepu", 
-                                            filetypes=[("ITL report","*.jepu"), 
+        self.__file = asksaveasfilename(initialfile='Untitled.itl', 
+                                            defaultextension=".itl", 
+                                            filetypes=[("ITL report","*.itl"), 
                                                 ("Text document","*.txt"),
                                                 ("All files","*.*")
                                                   ]

@@ -1,5 +1,6 @@
-#######################################################Sintaksa JePU########################################################
+#######################################################Sintaksa ITL-a########################################################
 import numpy as np
+import pandas as pd
 
 from lark import Lark
 from lark import exceptions as lexc
@@ -18,19 +19,20 @@ except NameError:
 grammar = """
     start: instruction+
     
-    instruction: "izvestaj" STRING code_block -> pocetak_izvestaja
-               | "metrike" NAME "{" dict_item* "}" -> skup_metrika
-               | "oceni" NAME ";" -> oceni_metrike
-               | "oceni zbirno" NAME ("," NAME)* ";" -> oceni_metrike_z
-               | "oceni uporedno" NAME "," NAME";" -> oceni_metrike_u
-               | "oceni pojedinacno" NAME ("," NAME)* ";" -> oceni_metrike_p
-               | "ispisi" NAME ("," NAME)* ";" -> ispisi_metrike
-               | "nacrtaj metriku" NAME ("," NAME)* "iz" set -> nacrtaj_metriku
+    instruction: "report" STRING code_block -> pocetak_izvestaja
+               | "metrics" NAME "{" dict_item* "}" -> skup_metrika
+               | "grade" NAME ";" -> oceni_metrike
+               | "grade cumulative" NAME ("," NAME)* ";" -> oceni_metrike_z
+               | "grade comparative" NAME "," NAME";" -> oceni_metrike_u
+               | "grade singular" NAME ("," NAME)* ";" -> oceni_metrike_p
+               | "print" NAME ("," NAME)* ";" -> ispisi_metrike
+               | "make report" STRING ";" -> pravi_izvestaj
+               | "draw metric" NAME ("," NAME)* "from" set -> nacrtaj_metriku
 
     code_block: "{" instruction+ "}" -> blok_naredbi
     dict_item: NAME "=" dict_subitem -> naziv_metrike
     dict_subitem: "(" NUMBER "," NUMBER "," NUMBER ")" -> parametri_metrike
-    set: NAME ";" -> iz
+    set: NAME ";" -> from
     COMMENT : /#.*/
     
     %import common.CNAME -> NAME
@@ -62,6 +64,12 @@ def run_instruction(t):
     
     # Ako je koren drveta tj. naredba "izvestaj"
     if t.data == 'pocetak_izvestaja':
+        # Inicijalizuj objekat za ispis metrika u Eksel
+        pdPrintMetrics = []
+        pdCumulativeGrades = []
+        pdIndividualGrades = []
+        pdComparativeGrades = []
+        
         # Izdvoj naziv izvestaja
         nazivIzv = t.children[0]
 
@@ -99,7 +107,7 @@ def run_instruction(t):
             # i izracunata ocena skupa metrika (srednja vrednost ocena pojedinacnih metr.) 
             # Ako je naredba "oceni Metr1"
             elif i.data == 'oceni_metrike':
-                print("Ocena metrike:\n")
+                print("Metric grade:\n")
                 # Inicijalizuj promenljive za racunanje ocene
                 br = 0
                 ocenaP = 0
@@ -134,8 +142,8 @@ def run_instruction(t):
                     pfMtr = {}
                     # Oceni trenutni skup metrika (pronadji srednju vrednost ocene)
                     ocenaK = ocenaP/br
-                    print('Metrika:',pFaziSkupMtr) #napravljen skup sa svim ocenjenim metrikama
-                    print('Ocena:', str(int(round(ocenaK)))+'/100 bodova\n')
+                    print('Metric:',pFaziSkupMtr) #napravljen skup sa svim ocenjenim metrikama
+                    print('Grade:', str(int(round(ocenaK)))+'/100 points\n')
                 # Spremi podatke za crtanje i posalji ih
                 nazivSkupaMtrGrafik = ''
                 for key in pFaziSkupMtr:
@@ -147,7 +155,7 @@ def run_instruction(t):
             # Kao izlaz dobija se prosecna ocena za unete metrike
             # Ako je naredba "oceni zbirno"
             elif i.data == 'oceni_metrike_z':
-                print("Zbirne ocene:\n")
+                print("Cumulative grade:\n")
                 br = 0
                 ocenaP = 0
                 ocenaK = 0
@@ -169,14 +177,17 @@ def run_instruction(t):
                     pFaziSkupMtrZ[i.children[m][0:]] = pfMtr
                     pfMtr = {}
                     ocenaK = ocenaP/br
-                print('Metrika:',pFaziSkupMtrZ) #napravljen skup sa svim ocenjenim metrikama
-                print('Ocena:', str(int(round(ocenaK)))+'/100 bodova\n')
+                    gradeString = str(int(round(ocenaK)))+'/100 points\n'
+                    pdCumulativeGrades.append({'Metric set name': i.children[m],  'Cumulative grade':""})
+                print('Metric:',pFaziSkupMtrZ) #napravljen skup sa svim ocenjenim metrikama
+                print('Grade:', gradeString)
+                pdCumulativeGrades.append({'Metric set name':'',  'Cumulative grade':str(int(round(ocenaK)))+'/100 points'})
                 
             # Deo koda zaduzen za uporedno ocenjivanje i prikaz dva skupa metrika sa istim nazivima metrika
             # Kao izlaz dobija se prosecna ocena za dve unete metrike i njihv prikaz na radarskom grafiku
             # Ako je naredba "oceni uporedno"
             elif i.data == 'oceni_metrike_u':
-                print("Uporedne ocene:\n")
+                print("Comparative grades:\n")
                 br = 0
                 ocenaP = 0
                 ocenaK = 0
@@ -199,9 +210,12 @@ def run_instruction(t):
                     pFaziSkupMtrU[i.children[m][0:]] = pfMtr
                     pfMtr = {}
                     ocenaK = ocenaP/br
-                print('Metrika:',pFaziSkupMtrU) #napravljen skup sa svim ocenjenim metrikama
-                print('Ocena:', str(int(round(ocenaK)))+'/100 bodova\n')
-
+                    gradeString = str(int(round(ocenaK)))+'/100 points\n'
+                    pdComparativeGrades.append({'Metric set name': i.children[m],  'Comparative grade':""})
+                print('Metric:',pFaziSkupMtrU) #napravljen skup sa svim ocenjenim metrikama
+                print('Grade:', gradeString)
+                pdComparativeGrades.append({'Metric set name':'',  'Comparative grade':str(int(round(ocenaK)))+'/100 points'})
+               
                 # Spremi podatke za crtanje
                 nazivSkupaMtrGraf = []
                 for key in pFaziSkupMtrU:
@@ -219,7 +233,7 @@ def run_instruction(t):
             # Kao izlaz dobija pojedinacna se prosecna ocena za unete metrike
             # Ako je naredba "oceni pojedinacno"
             elif i.data == 'oceni_metrike_p':
-                print('Pojedinacne ocene:\n')                
+                print('Individual grades:\n')                
                 pFaziSkupMtrP = {}
                 for m in range(0,np.size(i.children)):
                     br = 0
@@ -242,19 +256,49 @@ def run_instruction(t):
                     pFaziSkupMtrP[i.children[m][0:]] = pfMtr
                     pfMtr = {}
                     ocenaK = ocenaP/br
-                    print('Metrika:',pFaziSkupMtrP) # Napravljen skup sa svim ocenjenim metrikama
-                    print('Ocena:', str(int(round(ocenaK)))+'/100 bodova\n')
+                    gradeString = str(int(round(ocenaK)))+'/100 points\n'
+                    pdIndividualGrades.append({'Metric': i.children[m],  'Grade':gradeString})
+                    print('Metric:',pFaziSkupMtrP) # Napravljen skup sa svim ocenjenim metrikama
+                    print('Grade:', gradeString)
                     pFaziSkupMtrP = {}
             
             # Deo koda zaduzen za ispis unetih parametara jedne ili vise metrika
             # Kao izlaz dobija se spisak metrika sa parametrima
             # Ako je naredba "ispisi"
             elif i.data == 'ispisi_metrike':
-                print("Ispis metrika:\n")
+                print("Metric values:\n")
                 for j in range(0,len(i.children)):
-                    print('Metrika:',i.children[j])
-                    print('Sadrzaj:',pSkupMtr[i.children[j]],'\n')
-
+                    print('Metric:',i.children[j])
+                    print('Values:',pSkupMtr[i.children[j]],'\n')
+                    # Pripremi df za upis u Eksel
+                    for k in pSkupMtr[i.children[j]]:
+                        temp = pSkupMtr[i.children[j]][k];
+                        pdPrintMetrics.append({'Set':i.children[j][0:],'Name': k,  'Param 1':temp[0], 'Param 2':temp[1], 'Param 3':temp[2]})
+         
+            # Deo koda zaduzen za pravljenje Eksel izvestaja
+            # Kao izlaz dobija se Eskel fajl sa svim podacima
+            # Ako je naredba "make report"
+            elif i.data == 'pravi_izvestaj':
+                try:
+                    path = 'reports/'+(i.children[0][0:])[1:-1]+'.xlsx'
+                    writer = pd.ExcelWriter(path, engine = 'xlsxwriter')
+                    if(len(pdPrintMetrics)!=0):
+                        df = pd.DataFrame.from_dict(pdPrintMetrics)
+                        df.to_excel(writer, sheet_name = "Assessment metrics")
+                    if(len(pdIndividualGrades)!=0):
+                        df = pd.DataFrame.from_dict(pdIndividualGrades)
+                        df.to_excel(writer, sheet_name = 'Individual grades')
+                    if(len(pdComparativeGrades)!=0):
+                        df = pd.DataFrame.from_dict(pdComparativeGrades)
+                        df.to_excel(writer, sheet_name = 'Comparative grades')
+                    if(len(pdCumulativeGrades)!=0):
+                        df = pd.DataFrame.from_dict(pdCumulativeGrades)
+                        df.to_excel(writer, sheet_name = 'Cumulative grades')
+                    writer.save()
+                    #writer.close()
+                except:
+                    raise IOError("File read/write error. Please try again.")
+                
             # Deo koda zaduzen za pojedinacno crtanje oblika Fazi funkcija jedne ili vise metrika iz skupa metrika
             # Kao izlaz dobija se grafik svake navedene metrike iz skupa metrika
             # Ako je naredba "nacrtaj metriku metr1,metr2,...metrn iz Naziv_skupa_metrika"
@@ -278,7 +322,7 @@ def run_instruction(t):
             
     # Ako ne prepoznas naredbu
     else:
-        raise SyntaxError('Nepoznata naredba: %s' % t.data)
+        raise SyntaxError('Unknown instruction: %s' % t.data)
 
 # Funkcija koja ubacuje nisku sa unetom sintaksom u citac (parser)
 # i zatim izvrsava instrukciju po instrukciju iz drveta

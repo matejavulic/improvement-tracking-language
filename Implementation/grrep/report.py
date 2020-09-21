@@ -4,6 +4,13 @@ import matplotlib.pyplot as plt
 from math import pi
 # Funkcija za crtanje radarskog grafika
 
+faceColor = 'white' #'012a53'
+spines = '#e5ecf600'
+fill = '#e5ecf6'
+fill2 = '#feb377'
+fontAxesColor = '#555555'#'whitesmoke'
+fontColor = '#555555' #'whitesmoke'
+
 def nacrtajRadGraf(df, nazivSkupaMtr, nazivIzv):
 
     # Broj promenljivih
@@ -25,11 +32,11 @@ def nacrtajRadGraf(df, nazivSkupaMtr, nazivIzv):
     angles += angles[:1]
  
     # Inicijalizujemo grafik
-    fig = plt.figure(figsize=(7, 6), facecolor='#012a53')
+    fig = plt.figure(figsize=(7, 6), facecolor=faceColor)
 
     # Definisemo fontove
-    font = {'fontname':'Calibri', 'fontsize':16, 'color':'whitesmoke', 'weight':'bold'}
-    fontAxes = {'fontname':'Calibri', 'fontsize':12, 'color':'whitesmoke'}
+    font = {'fontname':'Calibri', 'fontsize':16, 'color':fontColor, 'weight':'bold'}
+    fontAxes = {'fontname':'Calibri', 'fontsize':12, 'color':fontAxesColor}
 
     # Inicijalizujemo podgrafik
     ax = plt.subplot(111, polar=True)
@@ -46,26 +53,26 @@ def nacrtajRadGraf(df, nazivSkupaMtr, nazivIzv):
     plt.ylim(0,110)
  
     # Nacrtaj podatke
-    ax.plot(angles, values, linewidth=1.2, linestyle='solid', color='red', label= nazivSkupaMtr)
+    ax.plot(angles, values, linewidth=1.2, linestyle='solid', color='blue', label= nazivSkupaMtr)
 
     # Nacrtaj intervale prihvatljivosti
     ax.plot(angles, valuesGreen, linewidth=1.2, linestyle='dashed',alpha=0.8, color='green')
-    ax.plot(angles, valuesYellow, linewidth=1.2, linestyle='dashed',alpha=0.5, color='yellow')
+    ax.plot(angles, valuesYellow, linewidth=1.2, linestyle='dashed',alpha=0.5, color='orange')
     ax.plot(angles, valuesRed, linewidth=1.2, linestyle='dashed',alpha=0.4, color='red')
 
     # Oznaci vrednosti metrika
     oznaciOcene(values,angles,'o')
         
-    ax.set_facecolor("#012a53")
+    ax.set_facecolor(faceColor)
 
     # Popuni oblast
-    ax.fill(angles, values, 'b', alpha=0.9, color='#e5ecf6')
+    ax.fill(angles, values, 'b', alpha=0.9, color=fill)
 
     # Dodaj legendu
     plt.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1))
     
     # Boja y ose
-    ax.spines["polar"].set_color("#e5ecf600")
+    ax.spines["polar"].set_color(spines)
 
     plt.title(nazivIzv, pad='0', **font)
 
@@ -90,13 +97,13 @@ def oznaciOcene(values,angles,znak):
 
     for i in range (0,len(values)):
         if values[i]<=40:
-            plt.plot(angles[i], values[i], color='white', linestyle='dashed', linewidth = 3, 
+            plt.plot(angles[i], values[i], color='black', linestyle='dashed', linewidth = 3, 
                      marker=znak, markerfacecolor='red', markersize=6)
         elif values[i]>40 and values[i]<=70:
-            plt.plot(angles[i], values[i], color='white', linestyle='dashed', linewidth = 3, 
+            plt.plot(angles[i], values[i], color='black', linestyle='dashed', linewidth = 3, 
                      marker=znak, markerfacecolor='yellow', markersize=6)
         elif values[i]>70 and values[i]<=100:
-            plt.plot(angles[i], values[i], color='white', linestyle='dashed', linewidth = 3, 
+            plt.plot(angles[i], values[i], color='black', linestyle='dashed', linewidth = 3, 
                      marker=znak, markerfacecolor='green', markersize=6)
 
 # Funkcija koja crta dva uporedna radarska grafika
@@ -108,10 +115,10 @@ def nacrtajRadGrafUporedno(df,nazivSkupaMtr1,nazivSkupaMtr2,nazivIzv):
     angles = [n / float(N) * 2 * pi for n in range(N)]
     angles += angles[:1]
   
-    fig = plt.figure(figsize=(7, 6), facecolor='#012a53')
+    fig = plt.figure(figsize=(7, 6), facecolor=faceColor)
 
-    font = {'fontname':'Calibri', 'fontsize':16, 'color':'whitesmoke', 'weight':'bold'}
-    fontAxes = {'fontname':'Calibri', 'fontsize':12, 'color':'whitesmoke'}
+    font = {'fontname':'Calibri', 'fontsize':16, 'color':fontColor, 'weight':'bold'}
+    fontAxes = {'fontname':'Calibri', 'fontsize':12, 'color':fontAxesColor}
 
     ax = plt.subplot(111, polar=True)
     
@@ -128,20 +135,20 @@ def nacrtajRadGrafUporedno(df,nazivSkupaMtr1,nazivSkupaMtr2,nazivIzv):
     values=df.loc[0].drop('Vrsta').values.flatten().tolist() #ovde uzimamo samo prvi parametar
     values += values[:1]
     ax.plot(angles, values, linewidth=1.2, linestyle='solid', color='blue', label= nazivSkupaMtr1)
-    ax.fill(angles, values, 'b', alpha=0.9, color='#e5ecf6')
+    ax.fill(angles, values, 'b', alpha=0.9, color=fill)
 
     # Crtanje metrika iz drugog skupa
     values=df.loc[1].drop('Vrsta').values.flatten().tolist() #ovde uzimamo samo prvi parametar
     values += values[:1]
     ax.plot(angles, values, linewidth=1.2, linestyle='solid', color='red',label= nazivSkupaMtr2)
-    ax.fill(angles, values, 'b', alpha=0.9, color='#feb377')
+    ax.fill(angles, values, 'b', alpha=0.9, color=fill2)
 
     valuesGreen = 100*np.ones(len(values))
     valuesYellow = 70*np.ones(len(values))
     valuesRed = 40*np.ones(len(values))
     
     ax.plot(angles, valuesGreen, linewidth=1.2, linestyle='dashed',alpha=0.8, color='green')
-    ax.plot(angles, valuesYellow, linewidth=1.2, linestyle='dashed',alpha=0.5, color='yellow')
+    ax.plot(angles, valuesYellow, linewidth=1.2, linestyle='dashed',alpha=0.5, color='orange')
     ax.plot(angles, valuesRed, linewidth=1.2, linestyle='dashed',alpha=0.4, color='red')
 
     # Oceni vrednosti metrika
@@ -153,11 +160,11 @@ def nacrtajRadGrafUporedno(df,nazivSkupaMtr1,nazivSkupaMtr2,nazivIzv):
     values += values[:1]
     oznaciOcene(values,angles,'o')
     
-    ax.set_facecolor("#012a53")
+    ax.set_facecolor(faceColor)
 
     plt.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1))
 
-    ax.spines["polar"].set_color("#e5ecf600")
+    ax.spines["polar"].set_color(spines)
 
     plt.title(nazivIzv, pad='0', **font)
 
