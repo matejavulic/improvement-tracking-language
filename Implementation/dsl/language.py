@@ -26,7 +26,7 @@ grammar = """
                | "grade comparative" NAME "," NAME";" -> oceni_metrike_u
                | "grade singular" NAME ("," NAME)* ";" -> oceni_metrike_p
                | "print" NAME ("," NAME)* ";" -> ispisi_metrike
-               | "make report" STRING ";" -> pravi_izvestaj
+               | "make excel report" STRING ";" -> pravi_izvestaj
                | "draw metric" NAME ("," NAME)* "from" set -> nacrtaj_metriku
 
     code_block: "{" instruction+ "}" -> blok_naredbi
