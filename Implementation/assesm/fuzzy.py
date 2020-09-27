@@ -9,19 +9,274 @@ fill2 = '#feb377'
 fontAxesColor = '#555555'#'whitesmoke'
 fontColor = '#555555' #'whitesmoke'
 
-# Funkcija koja racuna brojcani stepen pripadnosti linearnoj opadajucoj Fazi funkciji pripadnosti
+def trapezoidFuzz(data):   
+    # pretvori sva polja u float
+    if str(data[0]) == '"+"' or str(data[0]) == '"-"':
+        data[0] = str(data[0])[1:-1] # skini suvisne navodnike
+        for i in range(1,len(data)):
+            data[i] = float(data[i])
+        # posalji parametre na ocenjivanje
+        v = data[1]
+        a = data[2]
+        b = data[3]
+        c = data[4]
+        d = data[5]
+        s = data[0]
+        return trapFu(v,a,b,c,d,s)
+    elif str(data[0]) == '+' or str(data[0]) == '-':
+        for i in range(1,len(data)):
+            data[i] = float(data[i])
+        # posalji parametre na ocenjivanje
+        v = data[1]
+        a = data[2]
+        b = data[3]
+        c = data[4]
+        d = data[5]
+        s = data[0]
+        return trapFu(v,a,b,c,d,s)
+    else:
+        for i in range(0,len(data)):
+            data[i] = float(data[i])
+        v = data[0]
+        a = data[1]
+        b = data[2]
+        c = data[3]
+        d = data[4]
+        return trapFu(v,a,b,c,d)
+
+# Funkcija koja racuna brojcani stepen pripadnosti trapezoidnoj fazi funkciji pripadnosti
+def trapFu(v,a,b,c,d,s='+'):
+    x = np.arange(d+2)
+    f = fuzz.trapmf(x, [a,b,c,d])
+    mf = fuzz.interp_membership(x,f,v)
+    if(s=='-'):
+        return np.round((1-mf)*100,3)
+    else:
+        return np.round(mf*100,3)
+
+def triangleFuzz(data):
+    # pretvori sva polja u float
+    if str(data[0]) == '"+"' or str(data[0]) == '"-"':
+        data[0] = str(data[0])[1:-1] # skini suvisne navodnike
+        for i in range(1,len(data)):
+            data[i] = float(data[i])
+        # posalji parametre na ocenjivanje
+        s = data[0]
+        v = data[1]
+        a = data[2]
+        b = data[3]
+        c = data[4]
+        return triaFu(v,a,b,c,s)
+    elif str(data[0]) == '+' or str(data[0]) == '-':
+        for i in range(1,len(data)):
+            data[i] = float(data[i])
+        s = data[0]
+        v = data[1]
+        a = data[2]
+        b = data[3]
+        c = data[4]
+        return triaFu(v,a,b,c,s)
+    else:
+        for i in range(0,len(data)):
+            data[i] = float(data[i])
+        v = data[0]
+        a = data[1]
+        b = data[2]
+        c = data[3]
+        return triaFu(v,a,b,c)
+    
+# Funkcija koja racuna brojcani stepen pripadnosti trougaonoj fazi funkciji pripadnosti
+def triaFu(v,a,b,c,s='+'):
+    x = np.arange(c+1)
+    f = fuzz.trimf(x, [a,b,c])
+    mf = fuzz.interp_membership(x,f,v)
+    if(s=='-'):
+        return np.round((1-mf)*100,3)
+    else:
+        return np.round(mf*100,3)
+    
+def sigmoidFuzz(data):
+    # pretvori sva polja u float
+    if str(data[0]) == '"+"' or str(data[0]) == '"-"':
+        data[0] = str(data[0])[1:-1] # skini suvisne navodnike
+        for i in range(1,len(data)):
+            data[i] = float(data[i])
+        # posalji parametre na ocenjivanje
+        s = data[0]
+        v = data[1]
+        a = data[2]
+        b = data[3]
+        return sigmFu(v,a,b,s)
+    elif str(data[0]) == '+' or str(data[0]) == '-':
+        for i in range(1,len(data)):
+            data[i] = float(data[i])
+        s = data[0]
+        v = data[1]
+        a = data[2]
+        b = data[3]
+        return sigmFu(v,a,b,s)
+    else:
+        for i in range(0,len(data)):
+            data[i] = float(data[i])
+        v = data[0]
+        a = data[1]
+        b = data[2]
+        return sigmFu(v,a,b)
+    
+# Funkcija koja racuna brojcani stepen pripadnosti sigmoidnoj Fazi funkciji pripadnosti
+def sigmFu(v,a,b,s='+'):
+    x = np.arange(b+1)
+    f = fuzz.sigmf(x,a,b)
+    mf = fuzz.interp_membership(x,f,v)
+    if(s=='-'):
+        return np.round((1-mf)*100,3)
+    else:
+        return np.round(mf*100,3)
+
+def gaussFuzz(data):
+    # pretvori sva polja u float
+    if str(data[0]) == '"+"' or str(data[0]) == '"-"':
+        data[0] = str(data[0])[1:-1] # skini suvisne navodnike
+        for i in range(1,len(data)):
+            data[i] = float(data[i])
+        # posalji parametre na ocenjivanje
+        s = data[0]
+        v = data[1]
+        a = data[2]
+        b = data[3]
+        return gausFu(v,a,b,s)
+
+    elif str(data[0]) == '+' or str(data[0]) == '-':
+        for i in range(1,len(data)):
+            data[i] = float(data[i])
+        s = data[0]
+        v = data[1]
+        a = data[2]
+        b = data[3]
+        return gausFu(v,a,b,s)
+    else:
+        for i in range(0,len(data)):
+            data[i] = float(data[i])
+        v = data[0]
+        a = data[1]
+        b = data[2]
+        return gausFu(v,a,b)
+    
+# Funkcija koja racuna brojcani stepen pripadnosti gausovoj Fazi funkciji pripadnosti
+def gausFu(v,a,b,s='+'):
+    x = np.arange(3*b)
+    f = fuzz.gaussmf(x,a,b)
+    mf = fuzz.interp_membership(x,f,v)
+    if(s=='-'):
+        return np.round((1-mf)*100,3)
+    else:
+        return np.round(mf*100,3)
+
+def gauss2Fuzz(data):
+    # pretvori sva polja u float
+    if str(data[0]) == '"+"' or str(data[0]) == '"-"':
+        data[0] = str(data[0])[1:-1] # skini suvisne navodnike
+        for i in range(1,len(data)):
+            data[i] = float(data[i])
+        # posalji parametre na ocenjivanje
+        s = data[0]
+        v = data[1]
+        a = data[2]
+        b = data[3]
+        c = data[4]
+        d = data[5]
+        return gau2Fu(v,a,b,c,d,s)
+
+    elif str(data[0]) == '+' or str(data[0]) == '-':
+        for i in range(1,len(data)):
+            data[i] = float(data[i])
+        s = data[0]
+        v = data[1]
+        a = data[2]
+        b = data[3]
+        c = data[4]
+        d = data[5]
+        return gau2Fu(v,a,b,c,d,s)
+
+    else:
+        for i in range(0,len(data)):
+            data[i] = float(data[i])
+        v = data[0]
+        a = data[1]
+        b = data[2]
+        c = data[3]
+        d = data[4]
+        return gau2Fu(v,a,b,c,d)
+    
+# Funkcija koja racuna brojcani stepen pripadnosti gausovoj Fazi funkciji pripadnosti
+def gau2Fu(v,a,b,c,d,s='+'):
+    x = np.arange(3*d)
+    f = fuzz.gauss2mf(x,a,b,c,d)
+    mf = fuzz.interp_membership(x,f,v)
+    if(s=='-'):
+        return np.round((1-mf)*100,3)
+    else:
+        return np.round(mf*100,3)
+
+# Fja za racunanje prosecne vrednosti ocena metrika unutar skupa metrika
+def averageGrade(pFaziSkupMtr,metricSet,metricNames):
+    num = 0
+    summ = 0.0
+
+    for name in metricNames:
+       summ = summ + pFaziSkupMtr[metricSet][name]
+       num = num + 1
+
+    return int(round(summ/num))
+
+# Fja za racunanje proseka vise skupova metrika
+def averageGradeMult(pFaziSkupMtr,metricSet,metricNames, compare="none"):
+    num = 0
+    summ = 0.0
+    if compare == "compare":
+        avgDict = {}
+        for metricSet in pFaziSkupMtr:
+            keysMetricNames = list(pFaziSkupMtr[metricSet].keys())
+            avgDict[metricSet] = averageGrade(pFaziSkupMtr,metricSet,keysMetricNames)
+ 
+        return avgDict
+    else:
+        for metricSet in pFaziSkupMtr:
+            for key in pFaziSkupMtr[metricSet]:
+                summ = summ + pFaziSkupMtr[metricSet][key]
+                num = num + 1
+        
+        return int(round(summ/num))
+
+# Fja koja racuna linearnu fazi fju
+def linearFuzz(data):
+    # pretvori sva polja u float
+    for i in range(0,len(data)):
+        data[i] = float(data[i])
+        
+    # U ako je prvi parametar manji od drugog -> pravi rastucu Fazi funkciju
+    if (data[1]<=data[2]):
+        pfMtr = faziRastuci(data[0],data[1],data[2])
+    else:
+        pfMtr = faziOpadajuci(data[0],data[1],data[2])
+
+    return pfMtr
+
+# Funkcija koja racuna brojcani stepen pripadnosti linearnoj opadajucoj fazi fji pripadnosti
 def faziOpadajuci(v1,a1,b1):
     x = np.arange(a1+1)
     f1 = fuzz.trimf(x, [0, 0, b1]) # Izmenjena trougaona Fazi funkcija
     m1f1 = fuzz.interp_membership(x,f1,v1)
     return np.round(m1f1*100,3)
 
-# Funkcija koja racuna brojcani stepen pripadnosti linearnoj rasucoj Fazi funkciji pripadnosti
+# Funkcija koja racuna brojcani stepen pripadnosti linearnoj rastucoj fazi fji pripadnosti
 def faziRastuci(v2,a2,b2):
     x = np.arange(b2+1)
     f2 = fuzz.piecemf(x,[a2,b2,b2])
     m1f2 = fuzz.interp_membership(x,f2,v2)
     return np.round(m1f2*100,3)
+
+##############################################Fje koje treba preseliti u nov modul##################################################
 
 # Funkcija koja zeljene metrike iz skupa metrika crta odgovarajucu fazi funkciju
 def crtajMetrike(nazivSkupaMtrCrtanje,pMetrikeKCrtanje,pFaziSkupMtr,pSkupMtr):
@@ -39,24 +294,21 @@ def crtajMetrike(nazivSkupaMtrCrtanje,pMetrikeKCrtanje,pFaziSkupMtr,pSkupMtr):
           ,'\n')
     # Izdvoji zeljene vrednosti metrika iz skupa metrika pSkupMtr i smesti za svaki parametar
     # sve tri vrednosti (izmerena vrednost, a, b)
-    for key in pMetrikeKCrtanje[nazivSkupaMtrCrtanje]:
-        for val in range (0,3):
-            niz[val] = pSkupMtr[nazivSkupaMtrCrtanje][pMetrikeKCrtanje[nazivSkupaMtrCrtanje][key]][val]
+    metricsDraw = list(pMetrikeKCrtanje[nazivSkupaMtrCrtanje].values())
+    
+    for key in metricsDraw:
+        niz = list(pSkupMtr[nazivSkupaMtrCrtanje][key]['data'].values()) # uzmi podatke sirove metrike
 
-        # Ako je prvi parametar manji od drugog -> crtaj i racunaj rastucu Fazi funkciju
-        if (niz[1]<=niz[2]):
-           faziRastuciCrtaj(
-                            niz[0],niz[1],niz[2],
-                            pMetrikeKCrtanje[nazivSkupaMtrCrtanje][key],
-                            nazivSkupaMtrCrtanje,
-                            )
-        # U suprotnom -> crtaj i racunaj opadajucu Fazi funkciju
+        # na osnovu vrste metrike zovi odgovarajucu fju za njeno crtanje
+        if (pSkupMtr[nazivSkupaMtrCrtanje][key]['type']) == 'linear':
+            # Ako je prvi parametar manji od drugog -> crtaj i racunaj rastucu Fazi funkciju
+            if (niz[1]<=niz[2]):
+               faziRastuciCrtaj(niz[0],niz[1],niz[2],key,nazivSkupaMtrCrtanje)
+            # U suprotnom -> crtaj i racunaj opadajucu Fazi funkciju
+            else:
+               faziOpadajuciCrtaj(niz[0],niz[1],niz[2],key,nazivSkupaMtrCrtanje)
         else:
-           faziOpadajuciCrtaj(
-                            niz[0],niz[1],niz[2],
-                            pMetrikeKCrtanje[nazivSkupaMtrCrtanje][key],
-                            nazivSkupaMtrCrtanje,
-                            )
+            raise SyntaxError("Unsuported function type for drawing.")
 
 # Funkcija koja crta grafik Fazi funkcije za metriku koja ima rastucu Fazi funkciju pripadnosti
 def faziRastuciCrtaj(v2,a2,b2,nazivMetrike,nazivSkupaMtrCrtanje):
@@ -113,13 +365,13 @@ def faziRastuciCrtaj(v2,a2,b2,nazivMetrike,nazivSkupaMtrCrtanje):
     
     # Oznaci gde se nalazi tacka na funkciji pripadnosti za v2 i oboj je prema vrednosti m1f2
     if 100*m1f2<=40:
-        plt.plot(v2, m1f2, color='red', linestyle='dashed', linewidth = 3, 
+        plt.plot(v2, m1f2, color='black', linestyle='dashed', linewidth = 3, 
                      marker='o', markerfacecolor='red', markersize=6)
     elif 100*m1f2>40 and 100*m1f2<=70:
-        plt.plot(v2, m1f2, color='yellow', linestyle='dashed', linewidth = 3, 
-                     marker='o', markerfacecolor='yellow', markersize=6)
+        plt.plot(v2, m1f2, color='black', linestyle='dashed', linewidth = 3, 
+                     marker='o', markerfacecolor='orange', markersize=6)
     elif 100*m1f2>70 and 100*m1f2<=100:
-        plt.plot(v2, m1f2, color='green', linestyle='dashed', linewidth = 3, 
+        plt.plot(v2, m1f2, color='black', linestyle='dashed', linewidth = 3, 
                      marker='o', markerfacecolor='green', markersize=6)
     
     plt.show(block=False)
@@ -171,13 +423,13 @@ def faziOpadajuciCrtaj(v2,a2,b2,nazivMetrike,nazivSkupaMtrCrtanje):
                 ))
     
     if 100*m1f2<=40:
-        plt.plot(v2, m1f2, color='red', linestyle='dashed', linewidth = 3, 
+        plt.plot(v2, m1f2, color='black', linestyle='dashed', linewidth = 3, 
                      marker='o', markerfacecolor='red', markersize=6)
     elif 100*m1f2>40 and 100*m1f2<=70:
-        plt.plot(v2, m1f2, color='yellow', linestyle='dashed', linewidth = 3, 
-                     marker='o', markerfacecolor='yellow', markersize=6)
+        plt.plot(v2, m1f2, color='black', linestyle='dashed', linewidth = 3, 
+                     marker='o', markerfacecolor='orange', markersize=6)
     elif 100*m1f2>70 and 100*m1f2<=100:
-        plt.plot(v2, m1f2, color='green', linestyle='dashed', linewidth = 3, 
+        plt.plot(v2, m1f2, color='black', linestyle='dashed', linewidth = 3, 
                      marker='o', markerfacecolor='green', markersize=6)
     
     plt.show(block=False)

@@ -1,6 +1,7 @@
-#######################################################Sintaksa ITL-a########################################################
+#######################################################Sintaksa ITL-a################################################################
 import numpy as np
 import pandas as pd
+import itertools as it
 
 from lark import Lark
 from lark import exceptions as lexc
@@ -8,21 +9,21 @@ from lark import exceptions as lexc
 from grrep.report import *
 from assesm.fuzzy import *
 
-#################Gramatika JePU domenski specificnog programskog jezika###########################
+################################Gramatika ITL domenski specificnog programskog jezika################################################
 
 try:
     input = raw_input
 except NameError:
     pass
 
-# Definisemo gramatiku jezika prema prosirenoj Bahus-Naurovoj fromi (EBNF) metasintaksnih opisa
+# Definisemo gramatiku jezika prema prosirenoj Bahus-Naurovoj formi (EBNF) metasintaktičkih opisa
 grammar = """
     start: instruction+
     
-    instruction: "report" STRING code_block -> pocetak_izvestaja
+    instruction: "assessment" STRING code_block -> pocetak_izvestaja
                | "metrics" NAME "{" dict_item* "}" -> skup_metrika
                | "grade" NAME ";" -> oceni_metrike
-               | "grade cumulative" NAME ("," NAME)* ";" -> oceni_metrike_z
+               | "grade cumulative" NAME "," NAME ("," NAME)* ";" -> oceni_metrike_z
                | "grade comparative" NAME "," NAME";" -> oceni_metrike_u
                | "grade singular" NAME ("," NAME)* ";" -> oceni_metrike_p
                | "print" NAME ("," NAME)* ";" -> ispisi_metrike
@@ -31,7 +32,12 @@ grammar = """
 
     code_block: "{" instruction+ "}" -> blok_naredbi
     dict_item: NAME "=" dict_subitem -> naziv_metrike
-    dict_subitem: "(" NUMBER "," NUMBER "," NUMBER ")" -> parametri_metrike
+    dict_subitem: "(" NUMBER "," NUMBER "," NUMBER ")" -> par_mer_lin     
+                | "trapezoid(" STRING? ","? NUMBER "," NUMBER "," NUMBER "," NUMBER "," NUMBER ")" -> par_mer_tra
+                | "triangle(" STRING? ","? NUMBER "," NUMBER "," NUMBER "," NUMBER ")" -> par_mer_tri
+                | "gauss(" STRING? ","? NUMBER "," NUMBER "," NUMBER ")" -> par_mer_gau
+                | "gauss2(" STRING? ","? NUMBER "," NUMBER "," NUMBER "," NUMBER "," NUMBER ")" -> par_mer_gau2
+                | "sigmoid(" STRING? ","? NUMBER "," NUMBER "," NUMBER ")" -> par_mer_sig
     set: NAME ";" -> from
     COMMENT : /#.*/
     
@@ -46,15 +52,206 @@ grammar = """
 # Definisemo objekat parsera gramatike (citaca) prema Earley algoritmu citanja (parsovanja)
 parser = Lark(grammar)
 
-# Glavna funkcija koja izvrsava naredbe JePU jezika
+##############################################Fje za obradu parsovnih podataka#######################################################
+
+# obrada naredbe grade, kao izlaz vraca ocenjen skup metrika
+def grade(metric, pSkupMtr):
+    metricSet = str(metric.children[0]) # smesti naziv skupa metrika
+    metricNames = pSkupMtr[metricSet].keys() # smesti nazive metrika unutar skupa
+    metrics = pSkupMtr[metricSet] # objekti {} metrika za dato ime skupa metrika
+
+    pFaziSkupMtr = {metricSet:{}}
+    avgGrade = ''
+
+    # idi kroz svaku metriku skupa
+    for name in metricNames:
+        if metrics[name]['type']=='linear':
+            # obradi metrike i vrati ih
+            pFaziSkupMtr[metricSet][name] = linearFuzz(metrics[name]['data'])
+        elif metrics[name]['type']=='trapezoid':
+            pFaziSkupMtr[metricSet][name] = trapezoidFuzz(metrics[name]['data'])
+        elif metrics[name]['type']=='triangle':
+            pFaziSkupMtr[metricSet][name] = triangleFuzz(metrics[name]['data'])
+        elif metrics[name]['type']=='sigmoid':
+            pFaziSkupMtr[metricSet][name] = sigmoidFuzz(metrics[name]['data'])
+        elif metrics[name]['type']=='gauss':
+            pFaziSkupMtr[metricSet][name] = gaussFuzz(metrics[name]['data'])
+        elif metrics[name]['type']=='gauss2':
+            pFaziSkupMtr[metricSet][name] = gauss2Fuzz(metrics[name]['data'])
+
+    avgGrade = averageGrade(pFaziSkupMtr,metricSet,metricNames) 
+    print(' Metric set:',pFaziSkupMtr) #napravljen skup sa svim ocenjenim metrikama
+    print(' Grade:',str(avgGrade)+'/100 points\n')
+    return pFaziSkupMtr
+
+# obrada naredbe grade cumulative, kao izlaz vraca zbirno ocenjene skupove metrika
+def gradeCumul(metric, pSkupMtr):
+    metricSet = {}
+
+    for index in range(0,len(metric.children)): 
+        metricSet[index] = str(metric.children[index]) # izlaz {0: 'E_banka_1', 1: 'E_banka_2'}
+
+    metricNames = metricSet.keys() # smesti nazive metrika unutar skupa
+
+    pFaziSkupMtr = {}
+    avgGrade = ''
+
+    for name in metricNames:
+
+       pFaziSkupMtr[metricSet[name]] = {}
+
+       for key in pSkupMtr[metricSet[name]].keys():
+           data = pSkupMtr[metricSet[name]][key]['data']
+
+           if pSkupMtr[metricSet[name]][key]['type']=='linear':
+               pFaziSkupMtr[metricSet[name]][key] = linearFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='trapezoid':
+               pFaziSkupMtr[metricSet[name]][key] = trapezoidFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='triangle':
+               pFaziSkupMtr[metricSet[name]][key] = triangleFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='sigmoid':
+               pFaziSkupMtr[metricSet[name]][key] = sigmoidFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='gauss':
+               pFaziSkupMtr[metricSet[name]][key] = gaussFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='gauss2':
+               pFaziSkupMtr[metricSet[name]][key] = gauss2Fuzz(data)
+
+    avgGrade = averageGradeMult(pFaziSkupMtr,metricSet,metricNames)
+    
+    print(' Metric sets:',pFaziSkupMtr) #napravljen skup sa svim ocenjenim metrikama
+    print(' Grade:',str(avgGrade)+'/100 points\n')
+    return pFaziSkupMtr,avgGrade
+
+# obrada naredbe grade comparative, kao izlaz vraca dva ocenjena skupa metrika i ispisuje koji ima bolju ocenu i za koliko %
+def gradeComp(metric, pSkupMtr):
+    metricSet = {}
+
+    for index in range(0,len(metric.children)): 
+        metricSet[index] = str(metric.children[index]) # izlaz {0: 'E_banka_1', 1: 'E_banka_2'}
+
+    metricNames = metricSet.keys() # smesti nazive metrika unutar skupa
+
+    pFaziSkupMtr = {}
+    avgGrade = ''
+
+    for name in metricNames:
+
+       pFaziSkupMtr[metricSet[name]] = {}
+
+       for key in pSkupMtr[metricSet[name]].keys():
+           data = pSkupMtr[metricSet[name]][key]['data']
+
+           if pSkupMtr[metricSet[name]][key]['type']=='linear':
+               pFaziSkupMtr[metricSet[name]][key] = linearFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='trapezoid':
+               pFaziSkupMtr[metricSet[name]][key] = trapezoidFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='triangle':
+               pFaziSkupMtr[metricSet[name]][key] = triangleFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='sigmoid':
+               pFaziSkupMtr[metricSet[name]][key] = sigmoidFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='gauss':
+               pFaziSkupMtr[metricSet[name]][key] = gaussFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='gauss2':
+               pFaziSkupMtr[metricSet[name]][key] = gauss2Fuzz(data)
+
+    avgGrade = averageGradeMult(pFaziSkupMtr,metricSet,metricNames,"compare")
+    
+    print(' Metric sets:',pFaziSkupMtr,'\n') #napravljen skup sa svim ocenjenim metrikama
+
+    # odredjivanje vece vrednosti metrike
+    avgGrade1 = list(avgGrade.values())[0]
+    avgGradeName1 = list(avgGrade)[0]
+    avgGrade2 = list(avgGrade.values())[1]
+    avgGradeName2 = list(avgGrade)[1]
+
+    if avgGrade1>avgGrade2:
+        grade = str(round((avgGrade1/avgGrade2-1)*100))
+        print("> Result:\n The metric",avgGradeName1,"has", grade+"% higer grade than the metric",avgGradeName2+'.')
+    elif avgGrade2>avgGrade1:
+        grade = str(round((avgGrade2/avgGrade1-1)*100))
+        print(" The metric",avgGradeName2,"has", grade+"% higer grade than the metric",avgGradeName1+'.')
+    else:
+        print(' The both metrics have equal grades.')
+
+    print(' Grades:',avgGrade,'\n')
+
+    return pFaziSkupMtr,avgGrade
+
+# obrada naredbe grade singular, kao izlaz vraca pojedinacno ocenjene skupove metrika i ispisuje rang listu
+def gradeSing(metric, pSkupMtr, leaderboard="hide"):
+    metricSet = {}
+
+    for index in range(0,len(metric.children)): 
+        metricSet[index] = str(metric.children[index]) # izlaz {0: 'E_banka_1', 1: 'E_banka_2'}
+
+    metricNames = metricSet.keys() # smesti nazive metrika unutar skupa
+
+    pFaziSkupMtr = {}
+    avgGrade = ''
+
+    for name in metricNames:
+        
+       for key in pSkupMtr[metricSet[name]].keys():
+           data = pSkupMtr[metricSet[name]][key]['data']
+
+           if pSkupMtr[metricSet[name]][key]['type']=='linear':
+               pFaziSkupMtr[metricSet[name]] = linearFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='trapezoid':
+               pFaziSkupMtr[metricSet[name]] = trapezoidFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='triangle':
+               pFaziSkupMtr[metricSet[name]] = triangleFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='sigmoid':
+               pFaziSkupMtr[metricSet[name]] = sigmoidFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='gauss':
+               pFaziSkupMtr[metricSet[name]] = gaussFuzz(data)
+
+           elif pSkupMtr[metricSet[name]][key]['type']=='gauss2':
+               pFaziSkupMtr[metricSet[name]] = gauss2Fuzz(data)
+
+    
+    for setName in pFaziSkupMtr:
+        print(' Metric set:',setName)
+        grade = str(int(round(pFaziSkupMtr[setName])))
+        print(' Grade:',grade+'/100 points\n')
+
+    if leaderboard=="show":
+        sortedPFaz = sorted(pFaziSkupMtr.items(), key=lambda x: x[1], reverse=True)
+        print("> Leaderboard:")
+        print("____________________________________")
+        num = 1
+        for setName in sortedPFaz:
+            print(str(num)+'. Metric set:',setName)
+            num = num + 1
+        print('\n')
+    return pFaziSkupMtr
+
+#####################################################Parsovanje unetih naredbi########################################################
+
+# Glavna funkcija koja izvrsava naredbe ITL jezika
 def run_instruction(t):
     pSkupMtr = {}
     pMtr = {}
     pfMtr = {}
+
     pFaziSkupMtr = {}
-    pFaziSkupMtrZ = {}
-    pFaziSkupMtrU = {}
-    pFaziSkupMtrP = {}
+    pFaziSkupMtrCumul = {}
+    pFaziSkuMtrComp = {}
+    pFaziSkupMtrSing = {}
+
     nazivIzv = ""
 
     # Sledi deo koda koji procitanu (parsovanu) sintaksu koju
@@ -69,7 +266,7 @@ def run_instruction(t):
         pdCumulativeGrades = []
         pdIndividualGrades = []
         pdComparativeGrades = []
-        
+
         # Izdvoj naziv izvestaja
         nazivIzv = t.children[0]
 
@@ -90,9 +287,30 @@ def run_instruction(t):
                     # Kad naidjes na naziv metrike
                     if j.data == "naziv_metrike":
                         nazivMtr = str(j.children[0]) # Smesti naziv metrike
-                        # Prodji kroz sva tri parametra metrike
-                        for k in range(0,3):
-                            priv[k] = float(j.children[1].children[k]) # Unesi j-tu metriku
+
+                        if j.children[1].data =="par_mer_lin":
+                            # Unesi vrstu metrike u polje 'type'
+                            priv = {"type":"linear","data":{}}
+
+                        elif j.children[1].data =="par_mer_tra":
+                            priv = {"type":"trapezoid","data":{}}
+                     
+                        elif j.children[1].data =="par_mer_gau":
+                            priv = {"type":"gauss","data":{}}
+
+                        elif j.children[1].data =="par_mer_gau2":
+                            priv = {"type":"gauss2","data":{}}
+        
+                        elif j.children[1].data =="par_mer_tri":
+                            priv = {"type":"triangle","data":{}}
+
+                        elif j.children[1].data =="par_mer_sig":
+                            priv = {"type":"sigmoid","data":{}}
+
+                        # Unesi podatke metrike u polje 'data'
+                        for k in range(0,len(j.children[1].children)): 
+                            priv["data"][k] = j.children[1].children[k]
+                                
                         # Smesti recnik sa vrednostima metrike u privremeni niz metrika
                         pMtr[nazivMtr] = priv
                         
@@ -105,45 +323,16 @@ def run_instruction(t):
             # Deo koda zaduzen za ocenjivanje jedne metrike
             # Kao izlaz dobija se radarski grafik zeljenog skupa metrika
             # i izracunata ocena skupa metrika (srednja vrednost ocena pojedinacnih metr.) 
-            # Ako je naredba "oceni Metr1"
+            # Ako je naredba "grade"
             elif i.data == 'oceni_metrike':
-                print("Metric grade:\n")
-                # Inicijalizuj promenljive za racunanje ocene
-                br = 0
-                ocenaP = 0
-                ocenaK = 0
+                print("> Metric grade:")
+                print("______________\n")
                 # Inicijaluzuj recnik u koji smestamo ocenjene metrike u njihovim skupovima metrika
-                # {'Skup metrika 1': ocena 1,'Skup metrika 2': ocena 2,...}
                 pFaziSkupMtr = {}
 
-                # Izdvoj vrednosti metrika iz trenutnog skupa metrike
-                for m in range(0,np.size(i.children)):
-                    for key in pSkupMtr[i.children[m]].keys():
-                        niz = {}
-                        for val in range (0,3):
-                            # kada to obavis
-                            niz[val] = pSkupMtr[i.children[m]][key][val]
-                        # U ako je prvi parametar manji od drugog -> pravi rastucu Fazi funkciju
-                        if (niz[1]<=niz[2]):
-                            pfMtr[key] = faziRastuci(niz[0],niz[1],niz[2])
-                            #Sracunaj trenutnu vrednost ocene za ukupan prosek svih metrika unutar jednog skupa metrika
-                            ocenaP = ocenaP + pfMtr[key]
-                            br = br + 1
-
-                        # U suprotnom -> pravi opadajucu Fazi funkciju
-                        else:
-                            pfMtr[key] = faziOpadajuci(niz[0],niz[1],niz[2])
-                            #Sracunaj trenutnu vrednost ocene za ukupan prosek svih metrika unutar jednog skupa metrika
-                            ocenaP = ocenaP + pfMtr[key]
-                            br = br + 1
-                            
-                    # Ubaci skup ocenjenuh metrika u skup svih ocenjenih skupova metrika
-                    pFaziSkupMtr[i.children[m][0:]] = pfMtr
-                    pfMtr = {}
-                    # Oceni trenutni skup metrika (pronadji srednju vrednost ocene)
-                    ocenaK = ocenaP/br
-                    print('Metric:',pFaziSkupMtr) #napravljen skup sa svim ocenjenim metrikama
-                    print('Grade:', str(int(round(ocenaK)))+'/100 points\n')
+                # Izdvoj vrednosti metrika iz trenutnog skupa metrike i izracunaj njenu vrednost
+                pFaziSkupMtr = grade(i, pSkupMtr)           
+                    
                 # Spremi podatke za crtanje i posalji ih
                 nazivSkupaMtrGrafik = ''
                 for key in pFaziSkupMtr:
@@ -153,128 +342,143 @@ def run_instruction(t):
 
             # Deo koda zaduzen za zbirno ocenjivanje vise metrika
             # Kao izlaz dobija se prosecna ocena za unete metrike
-            # Ako je naredba "oceni zbirno"
+            # Ako je naredba "grade cumulative"
             elif i.data == 'oceni_metrike_z':
-                print("Cumulative grade:\n")
-                br = 0
-                ocenaP = 0
-                ocenaK = 0
-                pFaziSkupMtrZ = {}
-                for m in range(0,np.size(i.children)):
-                    for key in pSkupMtr[i.children[m]].keys():
-                        niz = {}
-                        for val in range (0,3):
-                            niz[val] = pSkupMtr[i.children[m]][key][val]
-                        if (niz[1]<=niz[2]):
-                            pfMtr[key] = faziRastuci(niz[0],niz[1],niz[2])
-                            ocenaP = ocenaP + pfMtr[key]
-                            br = br + 1
-                        else:
-                            pfMtr[key] = faziOpadajuci(niz[0],niz[1],niz[2])
-                            ocenaP = ocenaP + pfMtr[key]
-                            br = br + 1
-                            
-                    pFaziSkupMtrZ[i.children[m][0:]] = pfMtr
-                    pfMtr = {}
-                    ocenaK = ocenaP/br
-                    gradeString = str(int(round(ocenaK)))+'/100 points\n'
-                    pdCumulativeGrades.append({'Metric set name': i.children[m],  'Cumulative grade':""})
-                print('Metric:',pFaziSkupMtrZ) #napravljen skup sa svim ocenjenim metrikama
-                print('Grade:', gradeString)
-                pdCumulativeGrades.append({'Metric set name':'',  'Cumulative grade':str(int(round(ocenaK)))+'/100 points'})
+                print("> Cumulative grade:")
+                print("__________________\n")
+                pFaziSkuMtrCumul = {}
+                pFaziSkupMtrCumul = gradeCumul(i, pSkupMtr)
+
+                # uzmi vracen objekat od gradeCumul i unesi u Eksel objekat
+                for setName in pFaziSkupMtrCumul[0]:
+                    pdCumulativeGrades.append({'Metric': setName, 'Grade':'','Max grade':''})
+
+                gradeCumulative = pFaziSkupMtrCumul[1]
+                pdCumulativeGrades.append({'Metric': '', 'Grade':gradeCumulative,'Max grade':100})
+    
                 
             # Deo koda zaduzen za uporedno ocenjivanje i prikaz dva skupa metrika sa istim nazivima metrika
             # Kao izlaz dobija se prosecna ocena za dve unete metrike i njihv prikaz na radarskom grafiku
             # Ako je naredba "oceni uporedno"
             elif i.data == 'oceni_metrike_u':
-                print("Comparative grades:\n")
-                br = 0
-                ocenaP = 0
-                ocenaK = 0
-                pFaziSkupMtrU = {}
+                print("> Comparative grade:")
+                print("___________________\n")
+                pFaziSkuMtrComp = {}
+                pFaziSkupMtrComp = gradeComp(i, pSkupMtr)
 
-                for m in range(0,np.size(i.children)):
-                    for key in pSkupMtr[i.children[m]].keys():
-                        niz = {}
-                        for val in range (0,3):
-                            niz[val] = pSkupMtr[i.children[m]][key][val]
-                        if (niz[1]<=niz[2]):
-                            pfMtr[key] = faziRastuci(niz[0],niz[1],niz[2])
-                            ocenaP = ocenaP + pfMtr[key]
-                            br = br + 1
-                        else:
-                            pfMtr[key] = faziOpadajuci(niz[0],niz[1],niz[2])
-                            ocenaP = ocenaP + pfMtr[key]
-                            br = br + 1
-                            
-                    pFaziSkupMtrU[i.children[m][0:]] = pfMtr
-                    pfMtr = {}
-                    ocenaK = ocenaP/br
-                    gradeString = str(int(round(ocenaK)))+'/100 points\n'
-                    pdComparativeGrades.append({'Metric set name': i.children[m],  'Comparative grade':""})
-                print('Metric:',pFaziSkupMtrU) #napravljen skup sa svim ocenjenim metrikama
-                print('Grade:', gradeString)
-                pdComparativeGrades.append({'Metric set name':'',  'Comparative grade':str(int(round(ocenaK)))+'/100 points'})
-               
                 # Spremi podatke za crtanje
                 nazivSkupaMtrGraf = []
-                for key in pFaziSkupMtrU:
+                for key in pFaziSkupMtrComp[0]:
                     nazivSkupaMtrGraf.append(key)
                # Pozovi fju za crtenje dva radaska grafika na jednoj slici
                 grafickiPrikazUporedno(
-                    pFaziSkupMtrU[nazivSkupaMtrGraf[0]],
-                    pFaziSkupMtrU[nazivSkupaMtrGraf[1]],
+                    pFaziSkupMtrComp[0][nazivSkupaMtrGraf[0]],
+                    pFaziSkupMtrComp[0][nazivSkupaMtrGraf[1]],
                     nazivSkupaMtrGraf[0],
                     nazivSkupaMtrGraf[1],
                     nazivIzv
                     )
 
+                # uzmi vracen objekat od gradeComp i unesi u Eksel objekat
+                for setName in pFaziSkupMtrComp[1]:
+                    gradeComparative = int(round(pFaziSkupMtrComp[1][setName]))
+                    pdComparativeGrades.append({'Metric': setName, 'Grade':gradeComparative,'Max grade':100})
+
             # Deo koda zaduzen za pojedinacno ocenjivanje vise metrika
             # Kao izlaz dobija pojedinacna se prosecna ocena za unete metrike
-            # Ako je naredba "oceni pojedinacno"
+            # Ako je naredba "grade singular"
             elif i.data == 'oceni_metrike_p':
-                print('Individual grades:\n')                
-                pFaziSkupMtrP = {}
-                for m in range(0,np.size(i.children)):
-                    br = 0
-                    ocenaP = 0
-                    ocenaK = 0
-                    for key in pSkupMtr[i.children[m]].keys():
-                        niz = {}
-                        for val in range (0,3):
+                print('> Individual grades:')
+                print("___________________\n")
+                pFaziSkupMtrSing = {}           
+                pFaziSkupMtrSing = gradeSing(i, pSkupMtr, leaderboard="show")
 
-                            niz[val] = pSkupMtr[i.children[m]][key][val]
-                        if (niz[1]<=niz[2]):
-                            pfMtr[key] = faziRastuci(niz[0],niz[1],niz[2])
-                            ocenaP = ocenaP + pfMtr[key]
-                            br = br + 1
-                        else:
-                            pfMtr[key] = faziOpadajuci(niz[0],niz[1],niz[2])
-                            ocenaP = ocenaP + pfMtr[key]
-                            br = br + 1
- 
-                    pFaziSkupMtrP[i.children[m][0:]] = pfMtr
-                    pfMtr = {}
-                    ocenaK = ocenaP/br
-                    gradeString = str(int(round(ocenaK)))+'/100 points\n'
-                    pdIndividualGrades.append({'Metric': i.children[m],  'Grade':gradeString})
-                    print('Metric:',pFaziSkupMtrP) # Napravljen skup sa svim ocenjenim metrikama
-                    print('Grade:', gradeString)
-                    pFaziSkupMtrP = {}
+                # uzmi vracen objekat od gradeSing i unesi u Eksel objekat
+                for setName in pFaziSkupMtrSing:
+                    gradeIndi = int(round(pFaziSkupMtrSing[setName]))
+                    pdIndividualGrades.append({'Metric': setName, 'Grade':gradeIndi,'Max grade':100})               
             
             # Deo koda zaduzen za ispis unetih parametara jedne ili vise metrika
             # Kao izlaz dobija se spisak metrika sa parametrima
             # Ako je naredba "ispisi"
             elif i.data == 'ispisi_metrike':
-                print("Metric values:\n")
+                print("> Metric sets values:")
+                print("____________________\n")
                 for j in range(0,len(i.children)):
-                    print('Metric:',i.children[j])
-                    print('Values:',pSkupMtr[i.children[j]],'\n')
+                    print(' Metric:',i.children[j])
+                    print(' Values:',pSkupMtr[i.children[j]],'\n')
+
                     # Pripremi df za upis u Eksel
-                    for k in pSkupMtr[i.children[j]]:
-                        temp = pSkupMtr[i.children[j]][k];
-                        pdPrintMetrics.append({'Set':i.children[j][0:],'Name': k,  'Param 1':temp[0], 'Param 2':temp[1], 'Param 3':temp[2]})
-         
+                    for key in pSkupMtr[i.children[j]]:
+
+                        tempType = pSkupMtr[i.children[j]][key]['type'];
+                        temp = pSkupMtr[i.children[j]][key]['data'];
+                        sign = '+'
+                    
+                        # proveri znak fje i pretvori objekat u listu, izbaci ga iz liste,
+                        # vrati u dict i prekoprija elemente kako bi index krenuo od 0
+                        if str(temp[0]) == '"-"' or str(temp[0]) =='-':
+                            sign = '-'
+                            tempList = list(temp.values())
+                            tempList.pop(0)
+                            for num in range(0,len(tempList)):
+                                tempList[num]= float(tempList[num])
+                            tempDict = {}
+                            for num in range(0,len(tempList)):
+                                tempDict[str(num)] = tempList[num]
+
+                        elif str(temp[0]) == '"+"' or str(temp[0]) =='+':
+                            sign = '+'
+                            tempList = list(temp.values())
+                            tempList.pop(0)
+                            for num in range(0,len(tempList)):
+                                tempList[num]= float(tempList[num])
+                            tempDict = {}
+                            for num in range(0,len(tempList)):
+                                tempDict[str(num)] = tempList[num]
+                        else:
+                            tempDict = temp
+ 
+                        excelObject = {'Set':i.children[j][0:],
+                                                   'Name': key,
+                                                   'Type': '/',
+                                                   'Sign': sign,
+                                                   'Param v':'/',
+                                                   'Param a':'/',
+                                                   'Param b':'/',
+                                                   'Param c':'/',
+                                                   'Param d':'/',
+                                                   }
+                        if tempType == 'linear':
+                            excelObject['Type'] = 'Linear'
+                        
+                        elif tempType == 'trapezoid':
+                            excelObject['Type'] = 'Trapezoidal'
+                            
+                        elif tempType == 'triangle':
+                            excelObject['Type'] = 'Triangular'
+                            
+                        elif tempType == 'gauss':
+                            excelObject['Type'] = 'Gaussian type 1'
+
+                        elif tempType == 'gauss2':
+                           excelObject['Type'] = 'Gaussian type 2'
+                           
+                        elif tempType == 'sigmoid':
+                            excelObject['Type'] = 'Sigmoidal'
+                            
+                        else:
+                            raise ValueError("Unknown metric type for Excel writing")
+
+             
+                        for excelKey,iterator in zip(('Param v','Param a','Param b','Param c','Param d'),tempDict):
+                            excelObject[excelKey] = float(tempDict[iterator])
+
+##                        for key in tempDict:
+##                            excelObject[list(excelObject.keys())[int(key)+4]] = float(tempDict[key])
+
+                        pdPrintMetrics.append(excelObject)
+                                             
             # Deo koda zaduzen za pravljenje Eksel izvestaja
             # Kao izlaz dobija se Eskel fajl sa svim podacima
             # Ako je naredba "make report"
@@ -282,22 +486,27 @@ def run_instruction(t):
                 try:
                     path = 'reports/'+(i.children[0][0:])[1:-1]+'.xlsx'
                     writer = pd.ExcelWriter(path, engine = 'xlsxwriter')
+
                     if(len(pdPrintMetrics)!=0):
                         df = pd.DataFrame.from_dict(pdPrintMetrics)
                         df.to_excel(writer, sheet_name = "Assessment metrics")
+
                     if(len(pdIndividualGrades)!=0):
                         df = pd.DataFrame.from_dict(pdIndividualGrades)
                         df.to_excel(writer, sheet_name = 'Individual grades')
+
+                    if(len(pdCumulativeGrades)!=0):
+                        df = pd.DataFrame.from_dict(pdCumulativeGrades)
+                        df.to_excel(writer, sheet_name = 'Cumulative grade')
+
                     if(len(pdComparativeGrades)!=0):
                         df = pd.DataFrame.from_dict(pdComparativeGrades)
                         df.to_excel(writer, sheet_name = 'Comparative grades')
-                    if(len(pdCumulativeGrades)!=0):
-                        df = pd.DataFrame.from_dict(pdCumulativeGrades)
-                        df.to_excel(writer, sheet_name = 'Cumulative grades')
+                    
                     writer.save()
                     #writer.close()
                 except:
-                    raise IOError("File read/write error. Please try again.")
+                    raise IOError("> File read/write error. Please try again.")
                 
             # Deo koda zaduzen za pojedinacno crtanje oblika Fazi funkcija jedne ili vise metrika iz skupa metrika
             # Kao izlaz dobija se grafik svake navedene metrike iz skupa metrika
@@ -322,7 +531,7 @@ def run_instruction(t):
             
     # Ako ne prepoznas naredbu
     else:
-        raise SyntaxError('Unknown instruction: %s' % t.data)
+        raise SyntaxError('> Unknown instruction: %s' % t.data)
 
 # Funkcija koja ubacuje nisku sa unetom sintaksom u citac (parser)
 # i zatim izvrsava instrukciju po instrukciju iz drveta
@@ -335,58 +544,103 @@ def runn(program):
 def test():
     text = """
 
-izvestaj "Nedeljni izvestaj - Grupa E-banka"
+assessment "Monthly report - E-bank group"
 {    
-   
-  # Prvo definisemo skupove metrika za sve tri banke
-  metrike E_banka_1
+  metrics E_banka_1
     {
-        # Deifnisanje metrike Zalbe
-	Zalbe = (3,20,5)
-        NoveKredKartice = (218, 100, 400)
-	ProvedenoVreme = (7.4, 1, 15)
-	NovKredit = (305,30,500)
-	VremeOdobrenjaKredita = (4.43,30,15) 
-        }
+	trap1 = trapezoid(3,1,6,9,11)
+	trap2 = trapezoid("-",4,1,5,10,14)
+
+        sig1 = sigmoid(7.3,6.2,8.4)
+        sig2 = sigmoid("-",7.3,6.2,8.4)
+
+        tri1 = triangle(3.45,0,5,10)
+        tri2 = triangle("-",3.45,0,5,10)
+
+        gau1 = gauss(3,6,3)
+        gau2 = gauss("-",3,6,3)
+
+        gss1 = gauss2(4,6,3,8,3)
+        gau2 = gauss2("-",4,6,3,8,3)
+
+        lin1 = (20,60,30)
+        lin2 = (50,0,200)
+    }
  
-  metrike E_banka_2
-    {
-        Zalbe = (1,20,5)
-        NoveKredKartice = (295, 100, 400)
-	ProvedenoVreme = (4.9, 1, 15)
-	NovKredit = (352,30,500)
-	VremeOdobrenjaKredita = (8.82,30,15)
-        } 
- 
-  metrike E_banka_3
-    {
-        Zalbe = (4,20,5)
-        NoveKredKartice = (191, 100, 400)
-	ProvedenoVreme = (9.5, 1, 15)
-	NovKredit = (254,30,500)
-	VremeOdobrenjaKredita = (2.52,30,15) 
-        }
-  
-    
+  metrics E_banka_2
+  {
+        trap1 = trapezoid(1,1,6,9,11)
+	trap2 = trapezoid("-",4,1,5,10,14)
+
+        sig1 = sigmoid(7.3,6.2,8.4)
+        sig2 = sigmoid("-",7.3,6.2,8.4)
+
+        tri1 = triangle(0,0,5,10)
+        tri2 = triangle("+",1.45,0,5,10)
+
+        gau1 = gauss(0,6,3)
+        gau2 = gauss("-",3,6,3)
+
+        gss1 = gauss2(0,6,3,8,3)
+        gau2 = gauss2("-",0,6,3,8,3)
+
+        lin1 = (50,60,30)
+        lin2 = (0,0,200) 
+  }
+
+   metrics E_banka_5
+  {
+        #dada = sigmoid(2.3,4.2,8.4)
+        #dada2 = sigmoid("-",2.3,6.2,8.4)
+
+        dada3 = trapezoid(9.5,1,6,9,11)
+	dada4 = trapezoid("-",4.5,1,6,9,11) 
+  }
+
+   metrics E_banka_3
+   {
+        ne = (6,20,5)
+        ne2 = (158, 100, 400)
+        ne3 = (3.5, 1, 15)
+        ne4 = (166,30,500)
+        ne5 = (9.52,30,15) 
+   }
+
+   metrics E_banka_4
+   {
+        ne5 = (6,20,5)
+        ne25 = (158, 100, 400)
+        ne35 = (3.5, 1, 15)
+        ne46 = (166,30,500)
+        ne56 = (9.52,30,15) 
+   }
+     
     # Prvo zelimo da vidimo ukupnu ocenu sve tri banke
-    oceni zbirno E_banka_1,E_banka_2,E_banka_3;
+    #grade cumulative E_banka_4,E_banka_3, E_banka_2;
     
     # Nakon toga proveravamo pojedinacnu ocenu svake banke
-    oceni pojedinacno E_banka_1, E_banka_2, E_banka_3;
+    grade singular E_banka_1, E_banka_2, E_banka_3;
     
     # Vidimo da je treca banka dobila najlosiju ocenu zato detaljnije
     # ispitujemo njen grafik:
-    oceni E_banka_3;
 
-   # Banka je ostvarila najlosiji rezultat za metrike Zalbe i 
-   # NoveKredKartice. Crtamo ih da bismo ih bolje proucili:
-   nacrtaj metriku Zalbe, NoveKredKartice iz E_banka_3; 
+    #grade E_banka_1;
+    #grade cumulative E_banka_1,E_banka_3,E_banka_5;
 
-   # Na kraju, poredimo uspesnost prve i druge banke:
-   oceni uporedno E_banka_1, E_banka_2;
+    #grade E_banka_5;
+    #grade E_banka_3;
+    
 
-  # Ispis svih unetih metrika vrsimo naredbom:
-  ispisi E_banka_1, E_banka_2, E_banka_3;
+    # Banka je ostvarila najlosiji rezultat za metrike Zalbe i 
+    # NoveKredKartice. Crtamo ih da bismo ih bolje proucili:
+    # draw metric ne, ne2 from E_banka_3; 
+
+    # Na kraju, poredimo uspesnost prve i druge banke:
+    grade comparative E_banka_1, E_banka_2;
+
+    # Ispis svih unetih metrika vrsimo naredbom:
+    #print E_banka_1, E_banka_2, E_banka_3;
+    #print E_banka_1;
 }
 
 """

@@ -1,4 +1,4 @@
-report "June Performance Assessment Report - E-bank Group"
+assessment "June Performance Assessment Report - E-bank Group"
 {    
    
   # We define metrics sets for all three banks
@@ -47,9 +47,11 @@ report "June Performance Assessment Report - E-bank Group"
    # At the end, we compare overall successfulness of first and second bank:
    grade comparative E_bank_1, E_bank_2;
 
-  # To print all metrics data (entered raw data) we can use the following instruction:
-  print E_bank_1, E_bank_2, E_bank_3;
+   # To print all metrics data (entered raw data) we can use the following instruction:
+   print E_bank_1, E_bank_2, E_bank_3;
 }
+
+
 
 
 
