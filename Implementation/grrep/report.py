@@ -25,7 +25,7 @@ def nacrtajRadGraf(df, nazivSkupaMtr, nazivIzv):
 
     # Vrednosti za opsege ocene kvaliteta parametra
     valuesGreen = 100*np.ones(len(values))
-    valuesYellow = 70*np.ones(len(values))
+    valuesOrange = 70*np.ones(len(values))
     valuesRed = 40*np.ones(len(values))
  
     # Definisemo uglove za svaku osu (delimo grafik / sa brojem promenljivih)
@@ -58,7 +58,7 @@ def nacrtajRadGraf(df, nazivSkupaMtr, nazivIzv):
 
     # Nacrtaj intervale prihvatljivosti
     ax.plot(angles, valuesGreen, linewidth=1.2, linestyle='dashed',alpha=0.8, color='green')
-    ax.plot(angles, valuesYellow, linewidth=1.2, linestyle='dashed',alpha=0.5, color='orange')
+    ax.plot(angles, valuesOrange, linewidth=1.2, linestyle='dashed',alpha=0.5, color='orange')
     ax.plot(angles, valuesRed, linewidth=1.2, linestyle='dashed',alpha=0.4, color='red')
 
     # Oznaci vrednosti metrika
@@ -102,7 +102,7 @@ def oznaciOcene(values,angles,znak):
                      marker=znak, markerfacecolor='red', markersize=6)
         elif values[i]>40 and values[i]<=70:
             plt.plot(angles[i], values[i], color='black', linestyle='dashed', linewidth = 3, 
-                     marker=znak, markerfacecolor='yellow', markersize=6)
+                     marker=znak, markerfacecolor='orange', markersize=6)
         elif values[i]>70 and values[i]<=100:
             plt.plot(angles[i], values[i], color='black', linestyle='dashed', linewidth = 3, 
                      marker=znak, markerfacecolor='green', markersize=6)
@@ -145,11 +145,11 @@ def nacrtajRadGrafUporedno(df,nazivSkupaMtr1,nazivSkupaMtr2,nazivIzv):
     ax.fill(angles, values, 'b', alpha=0.9, color=fill2)
 
     valuesGreen = 100*np.ones(len(values))
-    valuesYellow = 70*np.ones(len(values))
+    valuesOrange = 70*np.ones(len(values))
     valuesRed = 40*np.ones(len(values))
     
     ax.plot(angles, valuesGreen, linewidth=1.2, linestyle='dashed',alpha=0.8, color='green')
-    ax.plot(angles, valuesYellow, linewidth=1.2, linestyle='dashed',alpha=0.5, color='orange')
+    ax.plot(angles, valuesOrange, linewidth=1.2, linestyle='dashed',alpha=0.5, color='orange')
     ax.plot(angles, valuesRed, linewidth=1.2, linestyle='dashed',alpha=0.4, color='red')
 
     # Oceni vrednosti metrika

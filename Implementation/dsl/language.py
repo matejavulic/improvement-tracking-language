@@ -81,7 +81,8 @@ def grade(metric, pSkupMtr):
 
     avgGrade = averageGrade(pFaziSkupMtr,metricSet,metricNames) 
     print(' Metric set:',pFaziSkupMtr) #napravljen skup sa svim ocenjenim metrikama
-    print(' Grade:',str(avgGrade)+'/100 points\n')
+    print(' Grade:',str(avgGrade)+'/100 points')
+    print(' Grade zone:', gradeZone(avgGrade),'\n')
     return pFaziSkupMtr
 
 # obrada naredbe grade cumulative, kao izlaz vraca zbirno ocenjene skupove metrika
@@ -124,7 +125,8 @@ def gradeCumul(metric, pSkupMtr):
     avgGrade = averageGradeMult(pFaziSkupMtr,metricSet,metricNames)
     
     print(' Metric sets:',pFaziSkupMtr) #napravljen skup sa svim ocenjenim metrikama
-    print(' Grade:',str(avgGrade)+'/100 points\n')
+    print(' Grade:',str(avgGrade)+'/100 points')
+    print(' Grade zone:', gradeZone(avgGrade),'\n')
     return pFaziSkupMtr,avgGrade
 
 # obrada naredbe grade comparative, kao izlaz vraca dva ocenjena skupa metrika i ispisuje koji ima bolju ocenu i za koliko %
@@ -226,7 +228,8 @@ def gradeSing(metric, pSkupMtr, leaderboard="hide"):
     for setName in pFaziSkupMtr:
         print(' Metric set:',setName)
         grade = str(int(round(pFaziSkupMtr[setName])))
-        print(' Grade:',grade+'/100 points\n')
+        print(' Grade:',grade+'/100 points')
+        print(' Grade zone:', gradeZone(pFaziSkupMtr[setName]),'\n')
 
     if leaderboard=="show":
         sortedPFaz = sorted(pFaziSkupMtr.items(), key=lambda x: x[1], reverse=True)
@@ -544,9 +547,9 @@ def runn(program):
 def test():
     text = """
 
-assessment "Monthly report - E-bank group"
+assessment "Test"
 {    
-  metrics E_banka_1
+  metrics Test_1
     {
 	trap1 = trapezoid(3,1,6,9,11)
 	trap2 = trapezoid("-",4,1,5,10,14)
@@ -561,13 +564,13 @@ assessment "Monthly report - E-bank group"
         gau2 = gauss("-",3,6,3)
 
         gss1 = gauss2(4,6,3,8,3)
-        gau2 = gauss2("-",4,6,3,8,3)
+        gss2 = gauss2("-",4,6,3,8,3)
 
         lin1 = (20,60,30)
         lin2 = (50,0,200)
     }
  
-  metrics E_banka_2
+  metrics Test_2
   {
         trap1 = trapezoid(1,1,6,9,11)
 	trap2 = trapezoid("-",4,1,5,10,14)
@@ -582,68 +585,56 @@ assessment "Monthly report - E-bank group"
         gau2 = gauss("-",3,6,3)
 
         gss1 = gauss2(0,6,3,8,3)
-        gau2 = gauss2("-",0,6,3,8,3)
+        gss2 = gauss2("-",0,6,3,8,3)
 
         lin1 = (50,60,30)
         lin2 = (0,0,200) 
   }
 
-   metrics E_banka_5
+   metrics Test_5
   {
-        #dada = sigmoid(2.3,4.2,8.4)
-        #dada2 = sigmoid("-",2.3,6.2,8.4)
+        da1 = sigmoid(2.3,4.2,8.4)
+        da2 = sigmoid("-",2.3,6.2,8.4)
 
-        dada3 = trapezoid(9.5,1,6,9,11)
-	dada4 = trapezoid("-",4.5,1,6,9,11) 
+        da3 = trapezoid(9.5,1,6,9,11)
+	da4 = trapezoid("-",4.5,1,6,9,11) 
   }
 
-   metrics E_banka_3
+   metrics Test_3
    {
-        ne = (6,20,5)
-        ne2 = (158, 100, 400)
-        ne3 = (3.5, 1, 15)
+        ne1 = (6,20,5)
+        ne2 = (158,100,400)
+        ne3 = (3.5,1,15)
         ne4 = (166,30,500)
         ne5 = (9.52,30,15) 
    }
 
-   metrics E_banka_4
+   metrics Test_4
    {
-        ne5 = (6,20,5)
+        ne15 = (6,20,5)
         ne25 = (158, 100, 400)
-        ne35 = (3.5, 1, 15)
-        ne46 = (166,30,500)
-        ne56 = (9.52,30,15) 
+        ne35 = (3.5,1,15)
+        ne45 = (166,30,500)
+        ne55 = (9.52,30,15) 
    }
-     
-    # Prvo zelimo da vidimo ukupnu ocenu sve tri banke
-    #grade cumulative E_banka_4,E_banka_3, E_banka_2;
+    #grade cumulative Test_4, Test_3, Test_2;
     
-    # Nakon toga proveravamo pojedinacnu ocenu svake banke
-    grade singular E_banka_1, E_banka_2, E_banka_3;
-    
-    # Vidimo da je treca banka dobila najlosiju ocenu zato detaljnije
-    # ispitujemo njen grafik:
+    #grade singular Test_1, Test_2, Test_3;
 
     #grade E_banka_1;
-    #grade cumulative E_banka_1,E_banka_3,E_banka_5;
+    #grade cumulative Test_1, Test_3, Test_5;
 
-    #grade E_banka_5;
-    #grade E_banka_3;
+    #grade Test_5;
+    #grade Test_3;
     
+    #draw metric ne1, ne2 from Test_3; 
 
-    # Banka je ostvarila najlosiji rezultat za metrike Zalbe i 
-    # NoveKredKartice. Crtamo ih da bismo ih bolje proucili:
-    # draw metric ne, ne2 from E_banka_3; 
+    #grade comparative Test_1, Test_2;
 
-    # Na kraju, poredimo uspesnost prve i druge banke:
-    grade comparative E_banka_1, E_banka_2;
-
-    # Ispis svih unetih metrika vrsimo naredbom:
-    #print E_banka_1, E_banka_2, E_banka_3;
-    #print E_banka_1;
+    #print Test_1, Test_2, Test_3;
+    #print Test_1;
 }
 
 """
     # Procitaj i izvrsi unetu sintaksu
     runn(text)
-    

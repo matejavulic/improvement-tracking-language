@@ -9,6 +9,28 @@ fill2 = '#feb377'
 fontAxesColor = '#555555'#'whitesmoke'
 fontColor = '#555555' #'whitesmoke'
 
+def gradeZone(grade):
+    
+    redTreshold = 40
+    orangeTresholdLow = 40
+    orangeTresholdHigh = 70
+    greenTresholdLow = 70
+    greenTresholdHigh = 100
+    
+    red = "red"
+    orange = "orange"
+    green = "green"
+    error = "error: grade cannot be greater than 100"
+    
+    if grade<redTreshold:
+        return red
+    elif grade>=orangeTresholdLow and grade<orangeTresholdHigh:
+        return orange
+    elif grade>=greenTresholdLow and grade<=greenTresholdHigh:
+        return green
+    else:
+        return error
+
 def trapezoidFuzz(data):   
     # pretvori sva polja u float
     if str(data[0]) == '"+"' or str(data[0]) == '"-"':
@@ -125,7 +147,7 @@ def sigmoidFuzz(data):
     
 # Funkcija koja racuna brojcani stepen pripadnosti sigmoidnoj Fazi funkciji pripadnosti
 def sigmFu(v,a,b,s='+'):
-    x = np.arange(b+1)
+    x = np.arange(2*a+1)
     f = fuzz.sigmf(x,a,b)
     mf = fuzz.interp_membership(x,f,v)
     if(s=='-'):
@@ -164,7 +186,7 @@ def gaussFuzz(data):
     
 # Funkcija koja racuna brojcani stepen pripadnosti gausovoj Fazi funkciji pripadnosti
 def gausFu(v,a,b,s='+'):
-    x = np.arange(3*b)
+    x = np.arange(a+6*b)
     f = fuzz.gaussmf(x,a,b)
     mf = fuzz.interp_membership(x,f,v)
     if(s=='-'):
@@ -210,7 +232,7 @@ def gauss2Fuzz(data):
     
 # Funkcija koja racuna brojcani stepen pripadnosti gausovoj Fazi funkciji pripadnosti
 def gau2Fu(v,a,b,c,d,s='+'):
-    x = np.arange(3*d)
+    x = np.arange(c+6*d)
     f = fuzz.gauss2mf(x,a,b,c,d)
     mf = fuzz.interp_membership(x,f,v)
     if(s=='-'):
@@ -308,7 +330,7 @@ def crtajMetrike(nazivSkupaMtrCrtanje,pMetrikeKCrtanje,pFaziSkupMtr,pSkupMtr):
             else:
                faziOpadajuciCrtaj(niz[0],niz[1],niz[2],key,nazivSkupaMtrCrtanje)
         else:
-            raise SyntaxError("Unsuported function type for drawing.")
+            raise SyntaxError("Unsupported function type for drawing.")
 
 # Funkcija koja crta grafik Fazi funkcije za metriku koja ima rastucu Fazi funkciju pripadnosti
 def faziRastuciCrtaj(v2,a2,b2,nazivMetrike,nazivSkupaMtrCrtanje):

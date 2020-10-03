@@ -79,16 +79,14 @@ class Itl:
 
     
     class CustomText(Text):
-        '''A text widget with a new method, highlight_pattern()
+        '''Novi tekst vidžet sa metodom, highlight_pattern()
 
-        example:
+        primer:
         
         text = CustomText()
         text.tag_configure("red", foreground="#ff0000")
         text.highlight_pattern("this should be red", "red")
 
-        The highlight_pattern method is a simplified python
-        version of the tcl code at http://wiki.tcl.tk/3246
         '''
         
         def __init__(self, *args, **kwargs):
@@ -97,10 +95,8 @@ class Itl:
 
         def highlight_pattern(self, pattern, tag, start="1.0", end="end",
                           regexp=True):
-            '''Apply the given tag to all text that matches the given pattern
-
-            If 'regexp' is set to True, pattern will be treated as a regular
-            expression according to Tcl's regular expression syntax.
+            '''Primeni dati tag na sav tekst koji odgovara datom paternu
+            Ako je 'regexp' True, patern ce biti regularni izraz na osnovu Tcl-ove regex sintakse
             '''
 
             start = self.index(start)
@@ -121,8 +117,8 @@ class Itl:
                 self.tag_add(tag, "matchStart", "matchEnd")
                 
     __DEBUG = 'false'
-    __DESVER = '1.1.0'
-    __ITLVER = '1.2.1'
+    __DESVER = '1.1.1'
+    __ITLVER = '1.1.0'
             
     __root = Tk()
     
@@ -167,7 +163,7 @@ class Itl:
     def __init__(self,**kwargs):
 
         onlineDocUrl = "https://matejavulic.github.io/"
-        print("ITL Development Studio \n--itl-cor@["+self.__ITLVER+"]\n--itl-des@["+self.__DESVER+"]\n")
+        print("> ITL Development Studio \n--itl-cor@["+self.__ITLVER+"]\n--itl-des@["+self.__DESVER+"]\n")
   
         # Postavljamo ikonu razvojnog okruzenja (ako postoji) 
         try: 
@@ -338,7 +334,7 @@ class Itl:
         # metric_name = (v,a,b,c)
     }
     
-    # Make an assessment and print out the results
+    # Make the assessment and print out the results
     # Instructions: grade, print, ...
     
     # Save the assessment in the Excel file
@@ -360,8 +356,8 @@ class Itl:
     
     # Funkcija za prikaz informacija o razvojnom okruzenju
     def __showAbout(self,event=None): 
-        showinfo(title="About",message="ITL Development Studio\nAuthor: Mateja Vulić\nITL Ver: 1.0.0\nIDE ITL Ver: 1.0.0") 
-  
+        showinfo(title="About",message="ITL Development Studio\nAuthor: Mateja Vulić\nContact: matejavulic@gmail.com\nITL Core Ver: "+self.__ITLVER+"\nITL DS Ver: "+self.__DESVER) 
+    
     # Funkcija za otvaranje novog fajla
     def __openFile(self,event=None):  
         self.__file = askopenfilename(defaultextension=".itl", 
@@ -468,12 +464,12 @@ class Itl:
                 runn(self.__thisTextArea.get(1.0,END))
 
             except lexc.UnexpectedCharacters as err:
-                print("> Instruction error on line "+str(err.line)+". at position "+str(err.column)+".")
+                print("> Instruction error on line "+str(err.line)+". at the position "+str(err.column)+".")
                 #Izvlaciti iz err.args sve sto treba sa sve oznacenim kodom
                 self.__thisTextArea.tag_add("error", str(err.line)+".0", str(err.line)+".0+1lines")
                 
             except lexc.UnexpectedEOF as err:
-                print("Unexpected end of file. Did you close all brackets?")
+                print("> Unexpected end of the file. Did you close all brackets?")
                 
             except KeyError as err:
                 print("\n> Syntax error:")
@@ -486,7 +482,7 @@ class Itl:
                 self.__thisDebugArea.config(state=DISABLED)    
 
             except Exception as e:
-                print("> Unknown error occured. Please check your code.\nTrace:",e)
+                print("> An error occured. Please check your code.\nTrace:",e)
                 if self.__DEBUG == 'true':
                     traceback.print_exc() # naredba za ispis toka greske
             else:
