@@ -162,7 +162,6 @@ class Itl:
   
     def __init__(self,**kwargs):
 
-        onlineDocUrl = "https://matejavulic.github.io/"
         print("> ITL Development Studio \n--itl-cor@["+self.__ITLVER+"]\n--itl-des@["+self.__DESVER+"]\n")
   
         # Postavljamo ikonu razvojnog okruzenja (ako postoji) 
@@ -351,7 +350,7 @@ class Itl:
         exit() 
   
     # Funckija za otvaranje dokumentacije na internetu
-    def __onlineDoc(self):
+    def __onlineDoc(self,event=None):
         webbrowser.open("https://matejavulic.github.io/",new=1)
     
     # Funkcija za prikaz informacija o razvojnom okruzenju
@@ -526,7 +525,7 @@ class Itl:
     def run(self): 
    
         self.__root.bind_all("<F5>",self.__runFile) # Pridruzujemo kolbek funkciju za precicu za komandu Pokreni (F5)
-        self.__root.bind_all("<F1>",self.__showAbout)# Precica za prikaz pomoci
+        self.__root.bind_all("<F1>",self.__onlineDoc)# Precica za ucitavanje online pomoci
         self.__root.bind_all("<Control-d>",self.__deleteAll)# Precica za brisanje teksta
         self.__root.bind_all("<Control-n>",self.__newFile)# Precica za nov fajl
         self.__root.bind_all("<Control-o>",self.__openFile)# Precica za otvaranje fajla
