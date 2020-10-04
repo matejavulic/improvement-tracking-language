@@ -13,7 +13,7 @@ Head to [Documentation](https://matejavulic.github.io/) for detailed list of fea
 ## Contact
 If you have any questions, feel free to write me an e-mail at matejavulic@gmail.com .
 
-## ITL Design Studio User Interface 
+## ITL Development Studio User Interface 
 <p align="center">
   <img src="https://raw.githubusercontent.com/matejavulic/improvement-tracking-language/master/Resources/ide1.png">
   <img src="https://raw.githubusercontent.com/matejavulic/improvement-tracking-language/master/Resources/ide2.png">
