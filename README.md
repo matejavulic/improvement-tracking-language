@@ -30,4 +30,4 @@ Download and install:
 - Python with IDLE editor from its [official website](https://www.python.org/downloads/)
 - Now install following Python dependencies:  
     `pip install numpy pandas matplotlib skfuzzy lark xlsxwriter xhtml2pdf`
-- Open IDLE and load Implementation/ITL.py. To start ITL Design Studio press F5.
+- Open IDLE and load Implementation/ITL.py. To start ITL Development Studio press F5.
