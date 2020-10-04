@@ -11,7 +11,7 @@ This is my implementation of the Internal DSL interpreted with Python. The purpo
 Head to [Documentation](https://matejavulic.github.io/) for detailed list of features, internal organization and use cases.
 
 ## Contact
-If you have any questions, feel free to write me an e-mail at matejavulic@gmail.com .
+If you have any questions, feel free to write me an e-mail at matejavulic@gmail.com
 
 ## ITL Development Studio User Interface 
 <p align="center">
