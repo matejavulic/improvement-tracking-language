@@ -170,7 +170,7 @@ class Itl:
         except: 
                 pass # Ako ne postoji, nastavi dalje
   
-        # Podesi velicinu prozora (prepodeseno da bude 300x300) 
+        # Podesi velicinu prozora (prepodeseno da bude 700x600) 
   
         try: 
             self.__thisWidth = kwargs['width'] 

@@ -2,18 +2,25 @@ assessment "June Performance Assessment Report — E-Bank"
 {    
    
   # We define sets of metrics for the E-Bank
-  metrics E_Bank
+  metrics E_Bank_1
    {
     # Defining the Complaints metric
     Compl = (2,25,5)
     New_Credit_Cards = (369, 100, 400)
     Screen_Time = (7.4, 5, 15)
     }
+
+  metrics E_Bank_2
+   {
+    Compl = (1,25,5)
+    New_Credit_Cards = (285, 100, 400)
+    Screen_Time = (1.4, 5, 15)
+    }
     
     # Assess performace of the E-Bank:
-    print E_Bank;
-    make excel report "Ebank_Tutorial_0 - Report";
+    grade singular E_Bank_1, E_Bank_2;
 }
+
 
 
 
