@@ -312,8 +312,16 @@ def run_instruction(t):
 
                         # Unesi podatke metrike u polje 'data'
                         for k in range(0,len(j.children[1].children)): 
-                            priv["data"][k] = j.children[1].children[k]
+                            try:
+                                item =float(j.children[1].children[k])
                                 
+                            except:
+                                try:
+                                    item =str(j.children[1].children[k])
+                                except:
+                                    pass
+                            priv["data"][k] = item 
+                        
                         # Smesti recnik sa vrednostima metrike u privremeni niz metrika
                         pMtr[nazivMtr] = priv
                         
