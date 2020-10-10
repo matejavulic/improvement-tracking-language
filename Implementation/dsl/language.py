@@ -313,8 +313,7 @@ def run_instruction(t):
                         # Unesi podatke metrike u polje 'data'
                         for k in range(0,len(j.children[1].children)): 
                             try:
-                                item =float(j.children[1].children[k])
-                                
+                                item =float(j.children[1].children[k])   
                             except:
                                 try:
                                     item =str(j.children[1].children[k])

@@ -118,7 +118,7 @@ class Itl:
                 
     __DEBUG = 'false'
     __DESVER = '1.1.1'
-    __ITLVER = '1.1.0'
+    __ITLVER = '1.1.1'
             
     __root = Tk()
     
